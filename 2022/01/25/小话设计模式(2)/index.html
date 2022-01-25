@@ -6,15 +6,15 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="本文主要介绍常见的创建型设计模式，主要有单例、工厂和建造者模式。 1. 单例模式单例模式是一个很容易理解的概念，要求一个类只能创建一个对象，并提供全局访问点，常用场景是存储配置信息或者唯一高消耗资源。 实现单例模式的主要考虑点为：  构造函数外部无法访问 对象创建时线程安全 是否需要延迟加载  具体实现主要有两种方式，饿汉式和懒汉式，下文将会以一个 id 生成器进行举例。 1.1 饿汉式饿汉式实现">
+    <meta name="description" content="系列文章： 小话设计模式(1) 小话设计模式(3) 小话设计模式(4) 本文主要介绍常见的创建型设计模式，主要有单例、工厂和建造者模式。 1. 单例模式单例模式是一个很容易理解的概念，要求一个类只能创建一个对象，并提供全局访问点，常用场景是存储配置信息或者唯一高消耗资源。 实现单例模式的主要考虑点为：  构造函数外部无法访问 对象创建时线程安全 是否需要延迟加载  具体实现主要有两种方式，饿汉式和">
 <meta property="og:type" content="article">
 <meta property="og:title" content="小话设计模式(2)">
 <meta property="og:url" content="https://strokebun.github.io/2022/01/25/%E5%B0%8F%E8%AF%9D%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F(2)/index.html">
 <meta property="og:site_name" content="面向money编程">
-<meta property="og:description" content="本文主要介绍常见的创建型设计模式，主要有单例、工厂和建造者模式。 1. 单例模式单例模式是一个很容易理解的概念，要求一个类只能创建一个对象，并提供全局访问点，常用场景是存储配置信息或者唯一高消耗资源。 实现单例模式的主要考虑点为：  构造函数外部无法访问 对象创建时线程安全 是否需要延迟加载  具体实现主要有两种方式，饿汉式和懒汉式，下文将会以一个 id 生成器进行举例。 1.1 饿汉式饿汉式实现">
+<meta property="og:description" content="系列文章： 小话设计模式(1) 小话设计模式(3) 小话设计模式(4) 本文主要介绍常见的创建型设计模式，主要有单例、工厂和建造者模式。 1. 单例模式单例模式是一个很容易理解的概念，要求一个类只能创建一个对象，并提供全局访问点，常用场景是存储配置信息或者唯一高消耗资源。 实现单例模式的主要考虑点为：  构造函数外部无法访问 对象创建时线程安全 是否需要延迟加载  具体实现主要有两种方式，饿汉式和">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2022-01-25T00:29:40.000Z">
-<meta property="article:modified_time" content="2022-01-25T02:15:43.731Z">
+<meta property="article:modified_time" content="2022-01-25T07:06:41.964Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="设计模式">
 <meta name="twitter:card" content="summary">
@@ -148,7 +148,11 @@
   
 
   <div class="content" itemprop="articleBody">
-    <p>本文主要介绍常见的创建型设计模式，主要有单例、工厂和建造者模式。</p>
+    <p>系列文章：</p>
+<p><a href="https://strokebun.github.io/2022/01/25/%E5%B0%8F%E8%AF%9D%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F(1)/">小话设计模式(1)</a></p>
+<p><a href="https://strokebun.github.io/2022/01/25/%E5%B0%8F%E8%AF%9D%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F(3)/">小话设计模式(3)</a></p>
+<p><a href="https://strokebun.github.io/2022/01/25/%E5%B0%8F%E8%AF%9D%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F(4)/">小话设计模式(4)</a></p>
+<p>本文主要介绍常见的创建型设计模式，主要有单例、工厂和建造者模式。</p>
 <h2 id="1-单例模式"><a href="#1-单例模式" class="headerlink" title="1. 单例模式"></a>1. 单例模式</h2><p>单例模式是一个很容易理解的概念，要求一个类只能创建一个对象，并提供全局访问点，常用场景是存储配置信息或者唯一高消耗资源。</p>
 <p>实现单例模式的主要考虑点为：</p>
 <ul>
