@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>分布式相关理论</title>
+      <link href="/2022/01/26/%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E7%90%86%E8%AE%BA/"/>
+      <url>/2022/01/26/%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E7%90%86%E8%AE%BA/</url>
+      
+        <content type="html"><![CDATA[<h2 id="1-CAP"><a href="#1-CAP" class="headerlink" title="1. CAP"></a>1. CAP</h2><p>CAP 是分布式系统的三个指标：</p><ul><li>Consistency：一致性</li><li>Availability：可用性</li><li>Partition Tolerance：分区容错性</li></ul><h3 id="1-1-介绍"><a href="#1-1-介绍" class="headerlink" title="1.1 介绍"></a>1.1 介绍</h3><h4 id="一致性"><a href="#一致性" class="headerlink" title="一致性"></a>一致性</h4><p>一致性指在更新操作完成之后，所有节点在同一时间的数据完全一致，不存在中间状态。</p><p>数据一致性可分为：</p><ul><li>强一致性：任意时刻客户端获取到的各个节点数据都是一致的</li><li>最终一致性：允许存在中间状态，但要求经过一段时间之后，数据最终是一致的</li><li>弱一致性：允许部分数据不一致</li></ul><p>注：数据库事务也有一致性的概念，这个一致性指系统从一个正确的状态到另一个正确的状态；而分布式场景中的一致性指各副本数据之间的关系。两个一致性没有任何联系。</p><h4 id="可用性"><a href="#可用性" class="headerlink" title="可用性"></a>可用性</h4><p>可用性要求系统提供的服务必须一致是可用的状态，对于用户的每一个请求能在有限的时间内返回正常的结果。</p><p>其两个指标：</p><ul><li>有限时间：系统的响应时间必须是一个用户可接受的值</li><li>正常结果：无论操作成功还是失败，系统能返回一个用户能够理解的响应。例如返回一个系统内存错误 OOM 便不是一个正常结果 </li></ul><h4 id="分区容错性"><a href="#分区容错性" class="headerlink" title="分区容错性"></a>分区容错性</h4><p>系统在遇到网络分区故障时，仍然能够保证对外提供服务。</p><p>网络分区是系统中存在多个子网络，子网络之间通信异常，但内部通信是正常的，从而使系统被分为若干个区域。</p><h3 id="1-2-CAP-的应用"><a href="#1-2-CAP-的应用" class="headerlink" title="1.2 CAP 的应用"></a>1.2 CAP 的应用</h3><p><img src="cap.png" alt="alt"></p><p>在分布式系统中，P 是基本条件，因为分区是一种错误，它是必然会发生的，而不是一个可选项，如果不能保证 P，那么出现分区，系统便无法工作，这是无法接受的。所以，对于分布式系统，我们只能选择  C 或者 A。</p><h4 id="CP系统"><a href="#CP系统" class="headerlink" title="CP系统"></a>CP系统</h4><p>系统发生分区故障之后，客户端的任何请求都卡死或者超时，但是系统的每个节点都鞥你返回一致的数据。</p><h4 id="AP系统"><a href="#AP系统" class="headerlink" title="AP系统"></a>AP系统</h4><p> 系统发生分区故障之后，客户端能够访问系统，但是不能保证获取到的数据是最新的数据。</p><h3 id="1-3-CAP-的不足"><a href="#1-3-CAP-的不足" class="headerlink" title="1.3 CAP 的不足"></a>1.3 CAP 的不足</h3><ul><li>CAP 理论没有考虑网络延迟的问题，认为各节点的数据同步是瞬时的，与现实不符。这导致分布式大多选用 AP 方式</li><li>CAP 只是一种状态的描述，对于工程领域以及系统设计并没有帮助</li></ul><h2 id="2-BASE定理"><a href="#2-BASE定理" class="headerlink" title="2. BASE定理"></a>2. BASE定理</h2><p>由于 CAP 的种种不足，ebay 的架构师提出了 BASE 理论，是对 AP 的延伸。</p><p>BASE 是 Basically Available（基本可用）、Soft state（软状态）和 Eventually consistent（最终⼀致性）三个短语的缩写，核心思想是即使无法做到强一致性，但可以采用适合的方式达到最终一致性。</p><h4 id="基本可用"><a href="#基本可用" class="headerlink" title="基本可用"></a>基本可用</h4><p>基本可用指系统出现故障之后，系统仍是可用的，但允许损失部分可用性，例如</p><ul><li>响应时间增加</li><li>服务降级：流量高峰时，屏蔽一些功能维持系统稳定</li></ul><h4 id="软状态"><a href="#软状态" class="headerlink" title="软状态"></a>软状态</h4><p>软状态允许系统中的数据存在中间状态，这些中间状态不会影响系统的可用性，即允许不同节点的数据同步存在延迟</p><h4 id="最终一致性"><a href="#最终一致性" class="headerlink" title="最终一致性"></a>最终一致性</h4><p>最终一致性要求数据副本在一定时间之后，能够达到一致的状态。</p><p>最终一致性可分为</p><ul><li><p>因果一致性：进程 A 更新数据后通知进程 B，进程 B 对包含该项数据的范围都是 A 更新后的值</p></li><li><p>单调读：如果之前读到新的数据，后续读取不会得到更旧的数据。单调读一致性保证强于最终一致性，弱于强一致性</p></li><li><p>单调写：系统需要保证来⾃同⼀个进程的写操作被顺序执行</p></li><li><p>读写一致性：用户获取到的自身修改是最新的，其他用户的更新可能稍后才会看到</p></li></ul><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li><a href="https://book.douban.com/subject/30329536/">数据密集型应用系统设计</a></li><li><a href="https://en.wikipedia.org/wiki/CAP_theorem">CAP theorem</a></li><li><a href="https://www.zhihu.com/question/31346392">如何理解数据库事务中的一致性的概念?</a></li><li><a href="https://www.zhihu.com/question/54105974/answer/1643846752">CAP中的P到底是个什么意思</a></li><li><a href="https://en.wikipedia.org/wiki/Eventual_consistency">Eventual consistency</a></li></ul>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 分布式 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>面试常见智力题</title>
       <link href="/2022/01/26/%E9%9D%A2%E8%AF%95%E5%B8%B8%E8%A7%81%E6%99%BA%E5%8A%9B%E9%A2%98/"/>
       <url>/2022/01/26/%E9%9D%A2%E8%AF%95%E5%B8%B8%E8%A7%81%E6%99%BA%E5%8A%9B%E9%A2%98/</url>
