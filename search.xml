@@ -4,6 +4,25 @@
   
     
     <entry>
+      <title>程序员需要了解的计组知识(3): 存储器</title>
+      <link href="/2022/01/28/%E7%A8%8B%E5%BA%8F%E5%91%98%E9%9C%80%E8%A6%81%E4%BA%86%E8%A7%A3%E7%9A%84%E8%AE%A1%E7%BB%84%E7%9F%A5%E8%AF%86(3)%20%E5%AD%98%E5%82%A8%E5%99%A8/"/>
+      <url>/2022/01/28/%E7%A8%8B%E5%BA%8F%E5%91%98%E9%9C%80%E8%A6%81%E4%BA%86%E8%A7%A3%E7%9A%84%E8%AE%A1%E7%BB%84%E7%9F%A5%E8%AF%86(3)%20%E5%AD%98%E5%82%A8%E5%99%A8/</url>
+      
+        <content type="html"><![CDATA[<h2 id="1-存储金字塔"><a href="#1-存储金字塔" class="headerlink" title="1. 存储金字塔"></a>1. 存储金字塔</h2><p>计算机中使用的存储器可分为</p><ul><li><p>RAM ：静态存储器，读写速度快。举例 CPU Cache</p></li><li><p>DRAM ：动态存储器，读写速度慢，集成度高，掉电失去数据。举例 内存</p></li><li><p>硬盘</p></li></ul><p>计算机中使用的存储设备构成了存储器金字塔</p><p><img src="https://kya7nvdl65.feishu.cn/space/api/box/stream/download/asynccode/?code=YjZjYzE2NmNmZTMzYmNlYThkMDc4NjY0Y2VmZjE0OGZfc0ZmdTJ5Sk5FMEt6a0oyTjRyS3poa1BqTFhEQ0FsNDRfVG9rZW46Ym94Y25wNWd5ZVZDYjF1Y0RiMnp3dzh3cWtjXzE2NDMzNjI3Njg6MTY0MzM2NjM2OF9WNA" alt="img"></p><p>各个存储器只和相邻的一层存储器打交道，并且随着一层层向下，存储器的容量逐层增大，访问速度逐层变慢，而单位存储成本也逐层下降。上一层的存储器可以看出下一层存储器的缓存。</p><h2 id="2-局部性原理"><a href="#2-局部性原理" class="headerlink" title="2. 局部性原理"></a>2. 局部性原理</h2><p>上文说到，上层存储是下层存储的缓存，那么通过添加缓存能加快访问吗？</p><p>是的，计算机的前辈们概括出了局部性原理，包括：</p><ul><li>时间局部性：刚被访问的数据，短时间内容易被再次访问</li><li>空间局部性：刚被访问的数据，其附近的数据容易被访问</li></ul><p>其中时间局部性在 内存管理 中得到广泛应用，空间局部性在 cache、文件系统、磁盘缓存、数据库 中得到广泛应用。</p><h2 id="3-cache"><a href="#3-cache" class="headerlink" title="3. cache"></a>3. cache</h2><h3 id="3-1-介绍"><a href="#3-1-介绍" class="headerlink" title="3.1 介绍"></a>3.1 介绍</h3><p>在过去几十年的计算机发展中，CPU 的性能提升远超内存，内存的存取速度严重滞后于处理器的计算速度，内存瓶颈导致高性能处理器难以发挥出应有的功效，这对日益增长的高性能计算形成了极大的制约，这一问题称为 内存墙 Memory wall。</p><p>为了弥补 CPU 和内存之间的性能差距，在 CPU 中引入高速缓存 cache，CPU 先从 cache 尝试访问数据和指令，访问失败再从内存中访问。</p><p>现在的 CPU 一般包含 L1、L2、L3 三级高级缓存，前一级可以当成后一级的缓存，L3 作为内存的缓存。L1、L2 每个核心独有，而 L3 缓存所有核心共用。</p><p>根据空间局部性原理，cache 从内存中读入是按块进行的，这样一块数据，称之为 cache line，cache line 的大小通常是 64 字节。</p><h3 id="3-2-伪共享问题"><a href="#3-2-伪共享问题" class="headerlink" title="3.2 伪共享问题"></a>3.2 伪共享问题</h3><p>Cache 每次都会读入一个 cache line 大小的数据，在多线程环境中，如果两个线程各自的变量（共两个）被放在同一个 cache line，每次写其中一个变量将导致整个 cache line 失效，相当于只有一个线程可以同时访问这个 cache line，降低了访问速度，这被称为伪共享问题。</p><p>伪共享问题的解决方案是进行字节填充。即增加没有实际意义的填充字段，保证一个 cache line 中只能存储一个对象，在 java 中可以使用 <code>@Contended</code> 注解实现。</p><h3 id="3-3-缓存一致性"><a href="#3-3-缓存一致性" class="headerlink" title="3.3 缓存一致性"></a>3.3 缓存一致性</h3><p>在多核 CPU 中，每个核都会有 L1 和 L2 缓存，对于内存中的同一个数据，两个核心的 cache 都了进行缓存，当其中一个核心的程序对该变量进行修改后，另一个核心的 cache 还保留着改动前的数据，可能会业务逻辑错误，这被称为缓存一致性问题。</p><p>解决一致性问题最常见的方案是总线嗅探，即所有的读写请求都经过总线进行广播，其他核心根据这些广播更新自己的缓存。基于总线嗅探有很多协议，其中最常见的是 MESI 协议。</p><p>MESI 协议，是一种写失效协议。在写失效协议中，只有一个 CPU 核心负责写入数据，其他的核心只是同步读取到这个写入。在一个 CPU 核心写入 cache 之后，会广播一个“失效”请求告诉所有其他的 CPU 核心，其他的 CPU 核心判断是否需要将相应的 cache line 标记为脏。</p><p>MESI 对应着 Cache Line 的四个标记：</p><ul><li><p>M：已修改，Modified，脏数据</p></li><li><p>E：独占，Exclusive；当前数据为该 cache 独占，写入不需要广播，如果接收到读取请求，则转变为 S 标记</p></li><li><p>S：共享，Shared；写入前需要进行广播，要求其他核心的 cache line 失效，再更新数据</p></li><li><p>I：已失效，Invalidated，脏数据</p></li></ul><p>其状态图如下</p><p><img src="https://kya7nvdl65.feishu.cn/space/api/box/stream/download/asynccode/?code=YTk0N2U2ODJjNzE0ZGJmNzU1YTk5NjEwOWRiOTk5MGRfUGtvSmhwR2RpWWk0b3p4NWhwYkx4UjNMSHZaeWZQY2hfVG9rZW46Ym94Y242OUc2UW1UYXNDbGVEVUVkVUlpTDdiXzE2NDMzNjI3Njg6MTY0MzM2NjM2OF9WNA" alt="img"></p><p>说明：c、c++、java 中均有 volatile 关键字，被 volatile 修饰的变量，要求写入时直接写入内存，读取时直接从内存读取，底层便依赖 MESI 协议实现。</p><h2 id="4-NUMA"><a href="#4-NUMA" class="headerlink" title="4. NUMA"></a>4. NUMA</h2><p>numa 非统一内存访问是一种关于多个 cpu 核心如何访问内存的架构模型，现在的 cpu 基本都是 numa 架构。</p><p>numa 架构简单而言就是一个 CPU 核心和一组内存插槽构成一个 node，每个核心可以访问自己 node下的内存，也可以访问其他 node 的内存，但是访问自己 node 内存的速度快于其他 node。</p><p><img src="https://kya7nvdl65.feishu.cn/space/api/box/stream/download/asynccode/?code=ODQzN2FmYjEwMzdhMDg4MWM2N2FkOGVlYzlkM2NmNmRfNGptc0JWTFNKVm1VSWVNQzR2RVVwMzA5VTFoTHlxQktfVG9rZW46Ym94Y25DT3dvWnRNSFdlWUxzelVEemo2UHNmXzE2NDMzNjI3Njg6MTY0MzM2NjM2OF9WNA" alt="img"></p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a><strong>参考资料</strong></h2><ul><li><p><a href="https://book.douban.com/subject/26365491/">程序是怎样跑起来的</a></p></li><li><p><a href="https://time.geekbang.org/column/intro/100026001">极客时间：深入浅出计算机组成原理</a></p></li><li><p><a href="https://book.douban.com/subject/1230413/">深入理解计算机系统</a></p></li><li><p><a href="https://en.wikipedia.org/wiki/Random-access_memory#Memory_wall">memory wall wikipedia</a></p></li></ul>]]></content>
+      
+      
+      
+        <tags>
+            
+            <tag> 计算机组成原理 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>程序员需要了解的计组知识(2): CPU</title>
       <link href="/2022/01/28/%E7%A8%8B%E5%BA%8F%E5%91%98%E9%9C%80%E8%A6%81%E4%BA%86%E8%A7%A3%E7%9A%84%E8%AE%A1%E7%BB%84%E7%9F%A5%E8%AF%86(2)%20CPU/"/>
       <url>/2022/01/28/%E7%A8%8B%E5%BA%8F%E5%91%98%E9%9C%80%E8%A6%81%E4%BA%86%E8%A7%A3%E7%9A%84%E8%AE%A1%E7%BB%84%E7%9F%A5%E8%AF%86(2)%20CPU/</url>
