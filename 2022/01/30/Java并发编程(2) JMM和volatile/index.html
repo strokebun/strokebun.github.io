@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="1. 并发编程模型在并发编程中，必须解决两个问题：  线程通信：线程之间通过什么机制交换信息 线程同步：用什么机制控制不同线程操作的相对顺序  为了解决上述问题，有两种主流的并发模型：  消息传递模型：线程之间没有公共状态，线程间通过发送消息进行通信，并且发送消息总是在接收消息之前，因此线程同步是天然的 共享内存模型：线程之间共享程序的公共状态，通过读写内存进行通信，线程同步必须显示指定某段代码在">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java并发编程(2): JMM和volatile">
+<meta property="og:url" content="https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/index.html">
+<meta property="og:site_name" content="面向money编程">
+<meta property="og:description" content="1. 并发编程模型在并发编程中，必须解决两个问题：  线程通信：线程之间通过什么机制交换信息 线程同步：用什么机制控制不同线程操作的相对顺序  为了解决上述问题，有两种主流的并发模型：  消息传递模型：线程之间没有公共状态，线程间通过发送消息进行通信，并且发送消息总是在接收消息之前，因此线程同步是天然的 共享内存模型：线程之间共享程序的公共状态，通过读写内存进行通信，线程同步必须显示指定某段代码在">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/jmm.png">
+<meta property="article:published_time" content="2022-01-30T02:28:20.000Z">
+<meta property="article:modified_time" content="2022-01-30T06:57:07.481Z">
+<meta property="article:author" content="StrokeBun">
+<meta property="article:tag" content="Java并发编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/jmm.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>Java并发编程(2): JMM和volatile</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(1)%20%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%9F%BA%E7%A1%80/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&text=Java并发编程(2): JMM和volatile"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&is_video=false&description=Java并发编程(2): JMM和volatile"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Java并发编程(2): JMM和volatile&body=Check out this article: https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&name=Java并发编程(2): JMM和volatile&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&t=Java并发编程(2): JMM和volatile"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">1. 并发编程模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%B8%89%E4%B8%AA%E5%85%B3%E9%94%AE%E7%82%B9"><span class="toc-number">2.</span> <span class="toc-text">2. 共享内存模型的三个关键点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 原子性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 可见性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%9C%89%E5%BA%8F%E6%80%A7"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 有序性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-JMM"><span class="toc-number">3.</span> <span class="toc-text">3. JMM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%A1%AC%E4%BB%B6%E7%9A%84%E6%95%88%E7%8E%87%E4%B8%8E%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 硬件的效率与一致性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-JMM"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 JMM</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-happens-before%E5%8E%9F%E5%88%99"><span class="toc-number">4.</span> <span class="toc-text">4. happens-before原则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-volatile"><span class="toc-number">5.</span> <span class="toc-text">4. volatile</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%86%85%E5%AD%98%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 内存可见性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%A6%81%E6%AD%A2%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 禁止指令重排序</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">6.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        Java并发编程(2): JMM和volatile
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">StrokeBun</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-01-30T02:28:20.000Z" itemprop="datePublished">2022-01-30</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B/" rel="tag">Java并发编程</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="1-并发编程模型"><a href="#1-并发编程模型" class="headerlink" title="1. 并发编程模型"></a>1. 并发编程模型</h2><p>在并发编程中，必须解决两个问题：</p>
+<ul>
+<li>线程通信：线程之间通过什么机制交换信息</li>
+<li>线程同步：用什么机制控制不同线程操作的相对顺序</li>
+</ul>
+<p>为了解决上述问题，有两种主流的并发模型：</p>
+<ul>
+<li>消息传递模型：线程之间没有公共状态，线程间通过发送消息进行通信，并且发送消息总是在接收消息之前，因此线程同步是天然的</li>
+<li>共享内存模型：线程之间共享程序的公共状态，通过读写内存进行通信，线程同步必须显示指定某段代码在线程之间互斥执行</li>
+</ul>
+<p>消息传递模型的典型代表是 go 中的 channel，而在 Java 中使用的是共享内存模型。</p>
+<h2 id="2-共享内存模型的三个关键点"><a href="#2-共享内存模型的三个关键点" class="headerlink" title="2. 共享内存模型的三个关键点"></a>2. 共享内存模型的三个关键点</h2><p>当设计共享内存模型时，需要考虑三个关键点：</p>
+<ul>
+<li>原子性</li>
+<li>可见性</li>
+<li>有序性</li>
+</ul>
+<h3 id="2-1-原子性"><a href="#2-1-原子性" class="headerlink" title="2.1 原子性"></a>2.1 原子性</h3><p>原子性指一个操作是不可中断的，即使在多线程环境中，一个操作一旦开始，也不会被另一个线程打断。</p>
+<p>例如线程 A 和线程 B 同时对一个变量 i 赋值，A 给 i 赋值为 1， B 给 i 赋值为 2，原子性保证 i 的值要么是 1，要么是 2，不会出现其他的值。这样看来原子性保证仿佛是必然的，其实不然，例如对 64 位的 long 类型进行赋值，假设 long 类型的读写不是原子的，那么便可能存在预期之外的数字。</p>
+<h3 id="2-2-可见性"><a href="#2-2-可见性" class="headerlink" title="2.2 可见性"></a>2.2 可见性</h3><p>可见性是指当一个线程修改某一个共享变量的值时，其他线程能够立即知道这个修改。</p>
+<p>对于单线程程序而言，可见性问题是不存在的。在多线程程序中，可能由于缓存的存在，其他线程读取变量时读到的仍是旧值，怎么解决可见性问题也是并发编程的一个考虑点。</p>
+<h3 id="2-3-有序性"><a href="#2-3-有序性" class="headerlink" title="2.3 有序性"></a>2.3 有序性</h3><p>有序性问题指程序在执行过程中，进行指令重排，导致与原指令的顺序未必一致，可能在多线程带代码中导致另一个线程读到脏值。</p>
+<p>指令是否发生重排、如何重排是我们无法预测的，也就是说，线程 A 的执行顺序对于线程 B 而言是没有保证的，而日常开发中线程 B 的结果可能依赖线程  A 部分代码的运行顺序，所以便需要保持其有序性。</p>
+<h2 id="3-JMM"><a href="#3-JMM" class="headerlink" title="3. JMM"></a>3. JMM</h2><h3 id="3-1-硬件的效率与一致性"><a href="#3-1-硬件的效率与一致性" class="headerlink" title="3.1 硬件的效率与一致性"></a>3.1 硬件的效率与一致性</h3><p>为了减少 CPU 和内存之间处理速度带来的限制，现代 CPU 引入了 cache 的概念，CPU 读取数据先从缓存中读取，读取失败后再从内存中读取。</p>
+<p>由于每个 CPU 核心都包含 cache，这也引入了缓存一致性问题，CPU 层面通过 MESI 等缓存一致性协议解决了该问题。除了 cache 之外，为了提高 CPU 的运算效率，会对代码进行指令重排序和乱序执行，CPU 会保证最后的执行结果一致，但不保证代码顺序运行。 </p>
+<blockquote>
+<p>相关知识具体可见博客中的 程序员需要了解的计组知识(2) 和 (3) 。</p>
+</blockquote>
+<h3 id="3-2-JMM"><a href="#3-2-JMM" class="headerlink" title="3.2 JMM"></a>3.2 JMM</h3><p>JMM，Java Memory Model，Java 内存模型与硬件模型高度类似，并且在编译器层面也对指令进行重排序。</p>
+<p>JMM 主要目的是定义程序中共享字段的访问规则。</p>
+<ul>
+<li>所有变量都存储在主内存中（虚拟机内存的一部分，不是计算机中的内存）</li>
+<li>每条线程还要自己的工作内存，线程的工作内存保存了主内存的部分副本，线程对变量的所有操作必须在工作内存中进行</li>
+<li>线程的工作内存是独立的，无法互相访问</li>
+</ul>
+<p><img src="jmm.png" alt="alt"></p>
+<p>所以当线程读取共享变量的值时，先在工作内存中寻找，如果变量已经被更新中，则从主内存中将数据拷贝到工作内存中。</p>
+<h2 id="4-happens-before原则"><a href="#4-happens-before原则" class="headerlink" title="4. happens-before原则"></a>4. happens-before原则</h2><p>上文提到，java 在编译器层面会对指令进行重排序，保证单线程内的最终结果一致，那么对于多线程程序呢？</p>
+<p>一方面，程序员需要JMM提供一个强的内存模型来编写代码；另一方面，编译器和处理器希望JMM对它们的束缚越少越好，这样它们就可以最可能多的做优化来提高性能，希望的是一个弱的内存模型。</p>
+<p>JMM 在其中找到了平衡点，对编译器和处理器来说，只要不改变程序的执行结果（单线程程序和正确同步了的多线程程序），编译器和处理器怎么优化都行。线程读取到的值，要么是之前某个线程写入的值，要么是默认值，不会无中生有。也就是说，JMM 并不能保证未同步的多线程程序与其顺序执行的结果一致。</p>
+<p>不过对程序员也提供了弥补错误，对于使用同步语意（synchronized、volatile、Lock 等），提供了 happens-before 原则，只要程序满足了该原则，便能保证运行结果与预期相同。happens-before定制了两个操作之间的执行顺序，其定义如下：</p>
+<ul>
+<li><p>如果一个操作 happens-before 另一个操作，那么第一个操作的执行结果将对第二个操作可见，而且第一个操作的执行顺序排在第二个操作之前。</p>
+</li>
+<li><p>如果重排序之后的执行结果，与按 happens-before 关系来执行的结果一致，那么 JMM 也允许这样的重排序。</p>
+</li>
+</ul>
+<p>在 Java 程序中，有如下天然的 happens-before 关系：</p>
+<ul>
+<li>程序顺序规则：一个线程中的每一个操作，happens-before 于该线程中的任意后续操作。</li>
+<li>监视器锁规则：对一个锁的解锁，happens-before 于随后对这个锁的加锁。</li>
+<li>volatile 变量规则：对一个 volatile 域的写，happens-before 于任意后续对这个 volatile 域的读。</li>
+<li>传递性：如果 A happens-before B，且 B happens-before C，那么 A happens-before C。</li>
+<li>start 规则：如果线程 A 执行操作 ThreadB.start() 启动线程B，那么 A 线程的 ThreadB.start() 操作 happens-before 于线程 B 中的任意操作、</li>
+<li>join 规则：如果线程 A 执行操作 ThreadB.join() 并成功返回，那么线程 B 中的任意操作 happens-before 于线程 A 从 ThreadB.join()   操作成功返回。</li>
+</ul>
+<h2 id="4-volatile"><a href="#4-volatile" class="headerlink" title="4. volatile"></a>4. volatile</h2><p>在 Java 中，volatile 关键字有两个作用：</p>
+<ul>
+<li>保证变量的内存可见性</li>
+<li>禁止 volatile 变量和普通变量重排序</li>
+</ul>
+<h3 id="4-1-内存可见性"><a href="#4-1-内存可见性" class="headerlink" title="4.1 内存可见性"></a>4.1 内存可见性</h3><p>当一个线程对 volatile 修饰的变量进行写操作时， JMM 会立即把该线程对应的本地内存的值刷新到主内存；而对这个变量进行读操作时， JMM 会立即把该线程的本地内存置为无效，从主内存中读取共享变量的值。</p>
+<p>内存可见性不代表线程安全，例如以下代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> count = <span class="number">0</span>;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> InterruptedException </span>&#123;</span><br><span class="line">        <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; i++) &#123;</span><br><span class="line">                count++;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;).start();</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">100000</span>; i++) &#123;</span><br><span class="line">            count++;</span><br><span class="line">        &#125;</span><br><span class="line">        Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">        System.out.println(count);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>上述代码允许之后 count 并不为 200000，这是由于自增操作并不保证原子性，所以仍不是线程安全的。</p>
+<h3 id="4-2-禁止指令重排序"><a href="#4-2-禁止指令重排序" class="headerlink" title="4.2 禁止指令重排序"></a>4.2 禁止指令重排序</h3><p>如果允许 volatile 变量和普通变量重排序，可能会发生问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">VolatileExample</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> a = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">volatile</span> <span class="keyword">boolean</span> flag = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">writer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        a = <span class="number">1</span>; <span class="comment">// step 1</span></span><br><span class="line">        flag = <span class="keyword">true</span>; <span class="comment">// step 2</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">reader</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (flag) &#123; <span class="comment">// step 3</span></span><br><span class="line">            System.out.println(a); <span class="comment">// step 4</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中线程 A 调用 writer，线程 B 调用 reader。可能出现以下场景：</p>
+<ul>
+<li>线程 A 设置 flag 为 true</li>
+<li>线程 B 读取 flag 为 true</li>
+<li>线程 B 读普通变量 a 的值为 0</li>
+<li>线程 A 写普通变量 a 的值为 1</li>
+</ul>
+<p>虽然 volatile 保证了内存可见性，但是普通变量的值发生了读取错误。</p>
+<p>故 jdk 1.5 中增强了 volatile 的内存语义，禁止 volatile 变量和普通变量重排序。JVM 层面通过内存屏障来实现，内存屏障是硬件层面而言的，有两个作用：</p>
+<ul>
+<li>屏障两侧的指令进制重排序</li>
+<li>强制把 cache 中的脏数据写入内存，或者使相应的 cache line 失效</li>
+</ul>
+<p>内存屏障有 LoadLoad、LoadStore、StoreStore、StoreLoad 四种。</p>
+<blockquote>
+<p>其规则是 Store 为写指令，Load 为读指令，并按顺序代表屏障前后的指令。例如 LoadLoad 即屏障前后都是读指令，LoadStore 即屏障前是读指令，屏障后是写指令。</p>
+</blockquote>
+<p>对于 volatile 而言，其策略是</p>
+<ul>
+<li>在每个 volatile 写操作前插入一个 StoreStore 屏障</li>
+<li>在每个 volatile 写操作后插入一个 StoreLoad 屏障</li>
+<li>在每个 volatile 读操作后插入一个 LoadLoad 屏障</li>
+<li>在每个 volatile 读操作后再插入一个 LoadStore 屏障</li>
+</ul>
+<p>volatile 禁止重排序的功能最经典的用法是双重检测的单例模式：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Singleton</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">volatile</span> <span class="keyword">static</span> Singleton instance;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Singleton <span class="title">getInstance</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (Singleton.class) &#123;</span><br><span class="line">                <span class="keyword">if</span> (instance == <span class="keyword">null</span>) &#123;</span><br><span class="line">                    instance = <span class="keyword">new</span> Singleton();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> instance;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>说明：因为代码复杂，考虑点多，日常开发中不建议双重检测的单例模式，更加推荐使用静态内部类或者枚举的形式，具体可见作者的 小话设计模式(2)。</p>
+</blockquote>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://concurrent.redspider.group/">深入浅出Java多线程</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26663605/">实战Java高并发程序设计</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497/">深入理解Java虚拟机</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26591326/">Java并发编程的艺术</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B%E6%A8%A1%E5%9E%8B"><span class="toc-number">1.</span> <span class="toc-text">1. 并发编程模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%85%B1%E4%BA%AB%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%B8%89%E4%B8%AA%E5%85%B3%E9%94%AE%E7%82%B9"><span class="toc-number">2.</span> <span class="toc-text">2. 共享内存模型的三个关键点</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%8E%9F%E5%AD%90%E6%80%A7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 原子性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 可见性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%9C%89%E5%BA%8F%E6%80%A7"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 有序性</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-JMM"><span class="toc-number">3.</span> <span class="toc-text">3. JMM</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E7%A1%AC%E4%BB%B6%E7%9A%84%E6%95%88%E7%8E%87%E4%B8%8E%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 硬件的效率与一致性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-JMM"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 JMM</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-happens-before%E5%8E%9F%E5%88%99"><span class="toc-number">4.</span> <span class="toc-text">4. happens-before原则</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-volatile"><span class="toc-number">5.</span> <span class="toc-text">4. volatile</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E5%86%85%E5%AD%98%E5%8F%AF%E8%A7%81%E6%80%A7"><span class="toc-number">5.1.</span> <span class="toc-text">4.1 内存可见性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E7%A6%81%E6%AD%A2%E6%8C%87%E4%BB%A4%E9%87%8D%E6%8E%92%E5%BA%8F"><span class="toc-number">5.2.</span> <span class="toc-text">4.2 禁止指令重排序</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">6.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&text=Java并发编程(2): JMM和volatile"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&is_video=false&description=Java并发编程(2): JMM和volatile"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Java并发编程(2): JMM和volatile&body=Check out this article: https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&title=Java并发编程(2): JMM和volatile"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&name=Java并发编程(2): JMM和volatile&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/&t=Java并发编程(2): JMM和volatile"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022
+    StrokeBun
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+</body>
+</html>
