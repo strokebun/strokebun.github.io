@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang=zh>
+<head>
+    <!-- so meta -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="HandheldFriendly" content="True">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
+    <meta name="description" content="1. 背景短域名 TinyURL 是一个在线服务，可以将长的 URL 转化为一个短的 URL 完成重定向。 微博&#x2F;Twitter 要求推文限制在 100 多个字符，如果直接使用原始链接，将大幅度限制用户的发表字数；日常使用的二维码是根据字符生成的，长 URL 生成的二维码更加不好识别。这些场景导致短链接系统的出现。 2. 分析2.1 系统输入 一个冗长的域名 一个自定义的别名 一个过期时间  2.">
+<meta property="og:type" content="article">
+<meta property="og:title" content="系统设计(1): 短域名系统">
+<meta property="og:url" content="https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/index.html">
+<meta property="og:site_name" content="面向money编程">
+<meta property="og:description" content="1. 背景短域名 TinyURL 是一个在线服务，可以将长的 URL 转化为一个短的 URL 完成重定向。 微博&#x2F;Twitter 要求推文限制在 100 多个字符，如果直接使用原始链接，将大幅度限制用户的发表字数；日常使用的二维码是根据字符生成的，长 URL 生成的二维码更加不好识别。这些场景导致短链接系统的出现。 2. 分析2.1 系统输入 一个冗长的域名 一个自定义的别名 一个过期时间  2.">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/可行解.png">
+<meta property="article:published_time" content="2022-02-05T07:37:50.000Z">
+<meta property="article:modified_time" content="2022-02-05T08:35:42.672Z">
+<meta property="article:author" content="StrokeBun">
+<meta property="article:tag" content="系统设计">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/可行解.png">
+    
+    
+      
+        
+          <link rel="shortcut icon" href="/images/favicon.ico">
+        
+      
+      
+        
+          <link rel="icon" type="image/png" href="/images/favicon-192x192.png" sizes="192x192">
+        
+      
+      
+        
+          <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+        
+      
+    
+    <!-- title -->
+    <title>系统设计(1): 短域名系统</title>
+    <!-- styles -->
+    
+<link rel="stylesheet" href="/css/style.css">
+
+    <!-- persian styles -->
+    
+    <!-- rss -->
+    
+    
+	<!-- mathjax -->
+	
+		<script type="text/x-mathjax-config">
+		  MathJax.Hub.Config({
+			tex2jax: {
+			  skipTags: ['script', 'noscript', 'style', 'textarea', 'pre'],
+			  inlineMath: [['$','$']]
+			}
+		  });
+		</script>
+		<script src='https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-MML-AM_CHTML' async></script>
+	
+<meta name="generator" content="Hexo 5.4.0"></head>
+
+<body class="max-width mx-auto px3 ltr">    
+      <div id="header-post">
+  <a id="menu-icon" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="menu-icon-tablet" href="#" aria-label="Menu"><i class="fas fa-bars fa-lg"></i></a>
+  <a id="top-icon-tablet" href="#" aria-label="Top" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');" style="display:none;"><i class="fas fa-chevron-up fa-lg"></i></a>
+  <span id="menu">
+    <span id="nav">
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     -->
+      </ul>
+    </span>
+    <br/>
+    <span id="actions">
+      <ul>
+        
+        
+        <li><a class="icon" aria-label="下一篇" href="/2022/01/30/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(2)%20JMM%E5%92%8Cvolatile/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        
+        <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
+      </ul>
+      <span id="i-prev" class="info" style="display:none;">上一篇</span>
+      <span id="i-next" class="info" style="display:none;">下一篇</span>
+      <span id="i-top" class="info" style="display:none;">返回顶部</span>
+      <span id="i-share" class="info" style="display:none;">分享文章</span>
+    </span>
+    <br/>
+    <div id="share" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&text=系统设计(1): 短域名系统"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&is_video=false&description=系统设计(1): 短域名系统"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=系统设计(1): 短域名系统&body=Check out this article: https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&name=系统设计(1): 短域名系统&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&t=系统设计(1): 短域名系统"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+    <div id="toc">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">1. 背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">2. 分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%B3%BB%E7%BB%9F%E8%BE%93%E5%85%A5"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 系统输入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%B3%BB%E7%BB%9F%E8%BE%93%E5%87%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 系统输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%B3%BB%E7%BB%9F%E8%A6%81%E6%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 系统要求</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E9%9C%80%E6%B1%82"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.3.1 需求</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-%E7%B3%BB%E7%BB%9F%E6%8C%87%E6%A0%87"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.3.2 系统指标</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">3. 方案设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8F%AF%E8%A1%8C%E8%A7%A3"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 可行解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4"><span class="toc-number">3.1.1.</span> <span class="toc-text">处理过期时间</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%9D%E8%AF%81%E5%9F%9F%E5%90%8D%E5%94%AF%E4%B8%80"><span class="toc-number">3.1.2.</span> <span class="toc-text">保证域名唯一</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 系统优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%9E%E5%90%90%E9%87%8F"><span class="toc-number">3.2.1.</span> <span class="toc-text">吞吐量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.2.2.</span> <span class="toc-text">延迟</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E9%9D%A0%E5%92%8C%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">3.2.3.</span> <span class="toc-text">可靠和安全性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+  </span>
+</div>
+
+    
+    <div class="content index py4">
+        
+        <article class="post" itemscope itemtype="http://schema.org/BlogPosting">
+  <header>
+    
+    <h1 class="posttitle" itemprop="name headline">
+        系统设计(1): 短域名系统
+    </h1>
+
+
+
+    <div class="meta">
+      <span class="author" itemprop="author" itemscope itemtype="http://schema.org/Person">
+        <span itemprop="name">StrokeBun</span>
+      </span>
+      
+    <div class="postdate">
+      
+        <time datetime="2022-02-05T07:37:50.000Z" itemprop="datePublished">2022-02-05</time>
+        
+      
+    </div>
+
+
+      
+
+      
+    <div class="article-tag">
+        <i class="fas fa-tag"></i>
+        <a class="tag-link-link" href="/tags/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1/" rel="tag">系统设计</a>
+    </div>
+
+
+    </div>
+  </header>
+  
+
+  <div class="content" itemprop="articleBody">
+    <h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h2><p>短域名 TinyURL 是一个在线服务，可以将长的 URL 转化为一个短的 URL 完成重定向。</p>
+<p>微博/Twitter 要求推文限制在 100 多个字符，如果直接使用原始链接，将大幅度限制用户的发表字数；日常使用的二维码是根据字符生成的，长 URL 生成的二维码更加不好识别。这些场景导致短链接系统的出现。</p>
+<h2 id="2-分析"><a href="#2-分析" class="headerlink" title="2. 分析"></a>2. 分析</h2><h3 id="2-1-系统输入"><a href="#2-1-系统输入" class="headerlink" title="2.1 系统输入"></a>2.1 系统输入</h3><ul>
+<li>一个冗长的域名</li>
+<li>一个自定义的别名</li>
+<li>一个过期时间</li>
+</ul>
+<h3 id="2-2-系统输出"><a href="#2-2-系统输出" class="headerlink" title="2.2 系统输出"></a>2.2 系统输出</h3><p>自定义别名或者随机生成的短域名，在过期时间到来前访问都可以被重定向到原始的冗长域名上</p>
+<h3 id="2-3-系统要求"><a href="#2-3-系统要求" class="headerlink" title="2.3 系统要求"></a>2.3 系统要求</h3><h4 id="2-3-1-需求"><a href="#2-3-1-需求" class="headerlink" title="2.3.1 需求"></a>2.3.1 需求</h4><ul>
+<li>过期后短域名将失效</li>
+<li>短域名是唯一的</li>
+<li>支持自定义短域名，并且限制规则</li>
+</ul>
+<h4 id="2-3-2-系统指标"><a href="#2-3-2-系统指标" class="headerlink" title="2.3.2 系统指标"></a>2.3.2 系统指标</h4><ul>
+<li>读多写少系统，估算 1 亿用户使用<ul>
+<li>写 QPS = 100 M * 0.1 / 86400 = 1k -&gt; 峰值 2k -&gt; 预估值 = 4k</li>
+<li>读 QPS = 100 M * 10 / 86400 = 115k -&gt; 峰值 230k -&gt; 预估值 = 460k</li>
+</ul>
+</li>
+</ul>
+<blockquote>
+<p>系统设计时需要考虑峰值和预估值，峰值为用户访问的上限值，预估值为经过几年用户增长后，用户访问的上限值。</p>
+</blockquote>
+<ul>
+<li>延迟、可靠性（几个 9）、安全性</li>
+</ul>
+<h2 id="3-方案设计"><a href="#3-方案设计" class="headerlink" title="3. 方案设计"></a>3. 方案设计</h2><h3 id="3-1-可行解"><a href="#3-1-可行解" class="headerlink" title="3.1 可行解"></a>3.1 可行解</h3><p>先从业务需要简单实现一个可用的系统，需要完成以下接口。</p>
+<p>写接口：</p>
+<ul>
+<li>输入长域名，判断是否存储</li>
+<li>生成一个从未使用过的短域名</li>
+<li>将长域名和短域名的关联持久化到数据库中</li>
+</ul>
+<p>读接口：</p>
+<ul>
+<li>获取短域名，判断是否有效</li>
+<li>根据短域名查询长域名</li>
+<li>使用长域名通知客户端重定向</li>
+</ul>
+<h4 id="处理过期时间"><a href="#处理过期时间" class="headerlink" title="处理过期时间"></a>处理过期时间</h4><p>增加过期时间有以下方案：</p>
+<ul>
+<li>延迟删除：获取短域名时判断是否过期，过期则进行删除。优点是性能损失小，修改方便；缺点是造成空间浪费</li>
+<li>定时删除：设置定时任务，为每个短域名设置删除回调，过期则立即删除。优点是空间利用率最高；缺点是维护定时任务占用大量内存，性能差</li>
+<li>轮询删除：设置后台逻辑，定时清理过期元素。空间和性能的折中考虑。</li>
+</ul>
+<p>由于系统要求低延迟，性能要求高，故选择延迟删除方案。</p>
+<h4 id="保证域名唯一"><a href="#保证域名唯一" class="headerlink" title="保证域名唯一"></a>保证域名唯一</h4><p>一个全局唯一的分布式 id 便能保证域名的唯一性，实现分布式 id 有以下方案：</p>
+<ul>
+<li>哈希，需要处理哈希冲突</li>
+<li>UUID，性能损耗大</li>
+<li>数据库自增 id，可以通过号端模式降低性能开销，但安全性较低</li>
+<li>雪花算法</li>
+</ul>
+<p>综上，一个可行的系统如下图所示：</p>
+<p><img src="可行解.png" alt="alt"></p>
+<h3 id="3-2-系统优化"><a href="#3-2-系统优化" class="headerlink" title="3.2 系统优化"></a>3.2 系统优化</h3><h4 id="吞吐量"><a href="#吞吐量" class="headerlink" title="吞吐量"></a>吞吐量</h4><ul>
+<li>水平拓展系统，使用 NGINX 进行负载均衡</li>
+<li>进行分片、数据副本</li>
+</ul>
+<h4 id="延迟"><a href="#延迟" class="headerlink" title="延迟"></a>延迟</h4><p>数据库层面：</p>
+<ul>
+<li>数据表的业务逻辑很简单，考虑将关系型数据库改为持久化 kv 引擎，例如 LevelDB</li>
+<li>构建索引：写入时需要判断长域名是否存在，对长域名建立索引</li>
+</ul>
+<p>缓存层面：</p>
+<ul>
+<li>判断长域名是否存储和短域名是否分配，可以构建布隆过滤器</li>
+<li>考虑在客户端建立缓存，存储长短域名映射，进一步降低延迟</li>
+</ul>
+<p>业务层面：</p>
+<ul>
+<li>利用号端模式获取批量 id，降低全局 id 的性能开销</li>
+</ul>
+<h4 id="可靠和安全性"><a href="#可靠和安全性" class="headerlink" title="可靠和安全性"></a>可靠和安全性</h4><ul>
+<li>数据库采用主从模式</li>
+<li>使用 kafka 与 binlog 的方式进行全量与增量的跨机房数据冗余备份</li>
+<li>根据监控指标，进行系统熔点、限流、扩缩容 </li>
+<li>直接使用自增 id 作为短域名，避免被遍历爬取</li>
+<li>进行 IP 限流和黑名单防止 DOS 攻击</li>
+</ul>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/TinyURL">TinyURL wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1Jb4y197ks">系统设计 短地址系统</a></li>
+<li><a target="_blank" rel="noopener" href="https://hardcore.feishu.cn/docs/doccnAfY0f35ZgnrFg7jSTQmOOf">实现一个短域名系统</a></li>
+</ul>
+
+  </div>
+</article>
+
+
+
+        
+          <div id="footer-post-container">
+  <div id="footer-post">
+
+    <div id="nav-footer" style="display: none">
+      <ul>
+         
+          <li><a href="/">首页</a></li>
+         
+          <li><a href="/about/">关于</a></li>
+         
+          <li><a href="/archives/">归档</a></li>
+        
+      </ul>
+    </div>
+
+    <div id="toc-footer" style="display: none">
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E8%83%8C%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">1. 背景</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%88%86%E6%9E%90"><span class="toc-number">2.</span> <span class="toc-text">2. 分析</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%B3%BB%E7%BB%9F%E8%BE%93%E5%85%A5"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 系统输入</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E7%B3%BB%E7%BB%9F%E8%BE%93%E5%87%BA"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 系统输出</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E7%B3%BB%E7%BB%9F%E8%A6%81%E6%B1%82"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 系统要求</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-1-%E9%9C%80%E6%B1%82"><span class="toc-number">2.3.1.</span> <span class="toc-text">2.3.1 需求</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-3-2-%E7%B3%BB%E7%BB%9F%E6%8C%87%E6%A0%87"><span class="toc-number">2.3.2.</span> <span class="toc-text">2.3.2 系统指标</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%96%B9%E6%A1%88%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.</span> <span class="toc-text">3. 方案设计</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%8F%AF%E8%A1%8C%E8%A7%A3"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 可行解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%84%E7%90%86%E8%BF%87%E6%9C%9F%E6%97%B6%E9%97%B4"><span class="toc-number">3.1.1.</span> <span class="toc-text">处理过期时间</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BF%9D%E8%AF%81%E5%9F%9F%E5%90%8D%E5%94%AF%E4%B8%80"><span class="toc-number">3.1.2.</span> <span class="toc-text">保证域名唯一</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E7%B3%BB%E7%BB%9F%E4%BC%98%E5%8C%96"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 系统优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%90%9E%E5%90%90%E9%87%8F"><span class="toc-number">3.2.1.</span> <span class="toc-text">吞吐量</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%BB%B6%E8%BF%9F"><span class="toc-number">3.2.2.</span> <span class="toc-text">延迟</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E9%9D%A0%E5%92%8C%E5%AE%89%E5%85%A8%E6%80%A7"><span class="toc-number">3.2.3.</span> <span class="toc-text">可靠和安全性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol>
+    </div>
+
+    <div id="share-footer" style="display: none">
+      <ul>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&text=系统设计(1): 短域名系统"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&is_video=false&description=系统设计(1): 短域名系统"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=系统设计(1): 短域名系统&body=Check out this article: https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&title=系统设计(1): 短域名系统"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&name=系统设计(1): 短域名系统&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/05/%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1(1)%20%E7%9F%AD%E5%9F%9F%E5%90%8D%E7%B3%BB%E7%BB%9F/&t=系统设计(1): 短域名系统"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+</ul>
+
+    </div>
+
+    <div id="actions-footer">
+        <a id="menu" class="icon" href="#" onclick="$('#nav-footer').toggle();return false;"><i class="fas fa-bars fa-lg" aria-hidden="true"></i> 菜单</a>
+        <a id="toc" class="icon" href="#" onclick="$('#toc-footer').toggle();return false;"><i class="fas fa-list fa-lg" aria-hidden="true"></i> 目录</a>
+        <a id="share" class="icon" href="#" onclick="$('#share-footer').toggle();return false;"><i class="fas fa-share-alt fa-lg" aria-hidden="true"></i> 分享</a>
+        <a id="top" style="display:none" class="icon" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up fa-lg" aria-hidden="true"></i> 返回顶部</a>
+    </div>
+
+  </div>
+</div>
+
+        
+        <footer id="footer">
+  <div class="footer-left">
+    Copyright &copy;
+    
+    
+    2022
+    StrokeBun
+  </div>
+  <div class="footer-right">
+    <nav>
+      <ul>
+        <!--
+       --><li><a href="/">首页</a></li><!--
+     --><!--
+       --><li><a href="/about/">关于</a></li><!--
+     --><!--
+       --><li><a href="/archives/">归档</a></li><!--
+     -->
+      </ul>
+    </nav>
+  </div>
+</footer>
+
+    </div>
+    <!-- styles -->
+
+
+
+  <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.2/css/all.min.css" crossorigin="anonymous" onload="this.onload=null;this.rel='stylesheet'"/>
+
+
+    <!-- jquery -->
+ 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js" crossorigin="anonymous"></script> 
+
+
+
+
+<!-- clipboard -->
+
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.7/clipboard.min.js" crossorigin="anonymous"></script> 
+  
+  <script type="text/javascript">
+  $(function() {
+    // copy-btn HTML
+    var btn = "<span class=\"btn-copy tooltipped tooltipped-sw\" aria-label=\"复制到粘贴板!\">";
+    btn += '<i class="far fa-clone"></i>';
+    btn += '</span>'; 
+    // mount it!
+    $(".highlight table").before(btn);
+    var clip = new ClipboardJS('.btn-copy', {
+      text: function(trigger) {
+        return Array.from(trigger.nextElementSibling.querySelectorAll('.code')).reduce((str,it)=>str+it.innerText+'\n','')
+      }
+    });
+    clip.on('success', function(e) {
+      e.trigger.setAttribute('aria-label', "复制成功!");
+      e.clearSelection();
+    })
+  })
+  </script>
+
+
+<script src="/js/main.js"></script>
+
+<!-- search -->
+
+<!-- Google Analytics -->
+
+<!-- Baidu Analytics -->
+
+<!-- Cloudflare Analytics -->
+
+<!-- Umami Analytics -->
+
+<!-- Disqus Comments -->
+
+<!-- utterances Comments -->
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        tex2jax: {
+            inlineMath: [ ["$","$"], ["\\(","\\)"] ],
+            skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code'],
+            processEscapes: true
+        }
+    });
+    MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax();
+        for (var i = 0; i < all.length; ++i)
+            all[i].SourceElement().parentNode.className += ' has-jax';
+    });
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+</body>
+</html>
