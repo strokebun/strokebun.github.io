@@ -17,7 +17,7 @@
 <meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/级联从库.png">
 <meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/增量复制.png">
 <meta property="article:published_time" content="2022-02-06T02:23:55.000Z">
-<meta property="article:modified_time" content="2022-02-06T08:54:25.564Z">
+<meta property="article:modified_time" content="2022-02-06T11:49:21.323Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -117,7 +117,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%8D%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">1. 复制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%8C%E6%AD%A5"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%A2%9E%E9%87%8F%E5%A4%8D%E5%88%B6"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 增量复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Sentinel"><span class="toc-number">2.</span> <span class="toc-text">2. Sentinel</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%8D%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">1. 复制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%8C%E6%AD%A5"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%A2%9E%E9%87%8F%E5%A4%8D%E5%88%B6"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 增量复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Sentinel"><span class="toc-number">2.</span> <span class="toc-text">2. Sentinel</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%9B%91%E6%8E%A7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 监控</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%80%89%E4%B8%BB"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 选主</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%80%9A%E7%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 通知</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%87%E7%89%87"><span class="toc-number">3.</span> <span class="toc-text">3. 切片</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%95%B0%E6%8D%AE%E5%92%8C%E5%AE%9E%E4%BE%8B%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 数据和实例的映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9A%E4%BD%8D%E6%95%B0%E6%8D%AE"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 客户端定位数据</span></a></li></ol></li></ol>
     </div>
   </span>
 </div>
@@ -186,6 +186,28 @@
 <p><img src="增量复制.png" alt="alt"></p>
 <h2 id="2-Sentinel"><a href="#2-Sentinel" class="headerlink" title="2. Sentinel"></a>2. Sentinel</h2><p>在主从库模式中，如果主库宕机，写请求将无法处理，此时需要将一个从库切换为主库，这就要提到哨兵机制，这是实现主从库自动切换的关键机制。</p>
 <p>哨兵 Sentinel 是 Redis 的高可用方案，本质是一个运行在特殊模式下的 Redis 实例，主要负责三个任务：监控、选主和通知。</p>
+<h3 id="2-1-监控"><a href="#2-1-监控" class="headerlink" title="2.1 监控"></a>2.1 监控</h3><p>监控即判断主库是否为下线状态，Sentinel 会按一定频率向所有跟它连接的实例发送 PING 命令，判断实例是否在线。</p>
+<p>哨兵对主库的判断有 主观下线 和 客观下线 两种，当哨兵发现实例对 PING 的响应超时了，就会把它标记为主观下线。此时并不会开启主从切换，因为可能主库并没有故障，但由于网络拥塞导致超时，导致误判。</p>
+<p>在日常开发中，会采用多实例组成的哨兵集群，当超过半数的哨兵判断为主观下线时，才会将主库判定为客观下线，进行主从库切换。</p>
+<h3 id="2-2-选主"><a href="#2-2-选主" class="headerlink" title="2.2 选主"></a>2.2 选主</h3><p>哨兵集群首先使用 Raft 算法选出领头 Sentinel，再选择新主库。哨兵选择新主库的过程分为 筛选 + 打分，首先会根据一定条件去掉不符合条件的从库，再根据一定规则给从库打分，选择得分最高的从库作为主库。</p>
+<p>筛选条件：从库首先得是正常在线状态，最近 5 秒内有回复过领头 Sentinel，并且与主库的断连次数少于一定阈值。</p>
+<p>打分规则分为三轮，只要在某一轮中有从库得分最高，则会被选为主库。</p>
+<ul>
+<li>从库优先级：用户可以通过 slave-priority 给从库设置优先级</li>
+<li>从库复制进度：选择和旧主库同步最接近的从库，即增量复制下标最解决主库的从库</li>
+<li>ID ：选择从 ID 最小的从库</li>
+</ul>
+<h3 id="2-3-通知"><a href="#2-3-通知" class="headerlink" title="2.3 通知"></a>2.3 通知</h3><p>在选出新主库后，Sentinel 发送 SLAVEOF 命令通知从库去复制新主库，并将旧主库变为从库。</p>
+<h2 id="3-切片"><a href="#3-切片" class="headerlink" title="3. 切片"></a>3. 切片</h2><p>当 Redis 中存放大量键值对时，将会占据大量内存，并且影响 RDB 持久化的性能，对此引入切片集群。</p>
+<p>切片集群，也称分片集群，指启动多个 Redis 实例组成集群，并按照一定规则，将数据划分多份，交由不同实例保存。</p>
+<h3 id="3-1-数据和实例的映射"><a href="#3-1-数据和实例的映射" class="headerlink" title="3.1 数据和实例的映射"></a>3.1 数据和实例的映射</h3><p>在切片集群中，数据需要分布在不同实例上，那么数据和实例之间如何对应呢？</p>
+<p>Redis 3.0 引入 Redis Cluster 提供针对切片集群的方案，采用哈希槽 Hash Slot 来处理数据和实例的映射。一个切片集群共有 16384 个槽，根据 key 计算 16 bit 的值并对 16384 取模，可以得到 key 对应的槽，那么槽如何与实例对应呢？</p>
+<p>默认情况下 Redis 会把这些槽平均分配各个实例，用户也可以自定义槽与实例的映射。</p>
+<h3 id="3-2-客户端定位数据"><a href="#3-2-客户端定位数据" class="headerlink" title="3.2 客户端定位数据"></a>3.2 客户端定位数据</h3><p>在集群创建过程中，每个实例会把自己的哈希槽发给预期连接的实例，最终得到所有哈希槽的分布，客户端与集群实例建立连接后，便能得到所有分布信息缓存在本地。</p>
+<p>当实例和哈希槽的对应关系改变之后，例如新增/删除实例，此时客户端是无法获知这个槽变化的，Redis Cluster 提供了一种重定向机制，给客户端发送新实例的地址。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 槽变为12321，IP地址为192.168.1.1</span></span><br><span class="line">(error) MOVED   12321   192.168.1.1</span><br></pre></td></tr></table></figure>
+<p>但可能192.168.1.1 的数据迁移仍未结束，此时会回传 ASK 报错信息。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(error) ASK 12321 192.168.1.1</span><br></pre></td></tr></table></figure>
 
   </div>
 </article>
@@ -209,7 +231,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%8D%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">1. 复制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%8C%E6%AD%A5"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%A2%9E%E9%87%8F%E5%A4%8D%E5%88%B6"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 增量复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Sentinel"><span class="toc-number">2.</span> <span class="toc-text">2. Sentinel</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%A4%8D%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">1. 复制</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%90%8C%E6%AD%A5"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 同步</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-%E5%A2%9E%E9%87%8F%E5%A4%8D%E5%88%B6"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 增量复制</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-Sentinel"><span class="toc-number">2.</span> <span class="toc-text">2. Sentinel</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E7%9B%91%E6%8E%A7"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 监控</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E9%80%89%E4%B8%BB"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 选主</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E9%80%9A%E7%9F%A5"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 通知</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%87%E7%89%87"><span class="toc-number">3.</span> <span class="toc-text">3. 切片</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E6%95%B0%E6%8D%AE%E5%92%8C%E5%AE%9E%E4%BE%8B%E7%9A%84%E6%98%A0%E5%B0%84"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 数据和实例的映射</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9A%E4%BD%8D%E6%95%B0%E6%8D%AE"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 客户端定位数据</span></a></li></ol></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
