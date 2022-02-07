@@ -8,19 +8,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="1. 字符串Redis 中的字符串采用简单动态字符串（Simple Dynamic String，SDS），实现如下。 12345678struct sdshdr &amp;#123;    &#x2F;&#x2F; buf数组已使用的字节数    int len;    &#x2F;&#x2F; buf数组未使用的字节数    int free;    &#x2F;&#x2F; 保存数据    char buf[];&amp;#125; SDS 相比 C 字符串的优势：">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis核心原理与实战(2) 底层实现">
-<meta property="og:url" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/index.html">
+<meta property="og:title" content="Redis核心原理与实战(3) 底层实现">
+<meta property="og:url" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/index.html">
 <meta property="og:site_name" content="面向money编程">
 <meta property="og:description" content="1. 字符串Redis 中的字符串采用简单动态字符串（Simple Dynamic String，SDS），实现如下。 12345678struct sdshdr &amp;#123;    &#x2F;&#x2F; buf数组已使用的字节数    int len;    &#x2F;&#x2F; buf数组未使用的字节数    int free;    &#x2F;&#x2F; 保存数据    char buf[];&amp;#125; SDS 相比 C 字符串的优势：">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/全局哈希表.png">
-<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/字典示意.jpg">
-<meta property="article:published_time" content="2022-02-06T02:13:20.000Z">
-<meta property="article:modified_time" content="2022-02-06T02:47:48.945Z">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/全局哈希表.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/字典示意.jpg">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/跳表.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/压缩列表示意.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/压缩列表元素结构.png">
+<meta property="article:published_time" content="2022-02-06T02:23:20.000Z">
+<meta property="article:modified_time" content="2022-02-07T09:12:14.701Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/全局哈希表.png">
+<meta name="twitter:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/全局哈希表.png">
     
     
       
@@ -40,7 +43,7 @@
       
     
     <!-- title -->
-    <title>Redis核心原理与实战(2) 底层实现</title>
+    <title>Redis核心原理与实战(3) 底层实现</title>
     <!-- styles -->
     
 <link rel="stylesheet" href="/css/style.css">
@@ -85,10 +88,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" aria-label="上一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="上一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(4)%20%E5%AE%9E%E6%88%98/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="下一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(1)%20%E4%BB%8B%E7%BB%8D/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="下一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -101,22 +104,22 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&text=Redis核心原理与实战(2) 底层实现"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&is_video=false&description=Redis核心原理与实战(2) 底层实现"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(2) 底层实现&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&name=Redis核心原理与实战(2) 底层实现&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&t=Redis核心原理与实战(2) 底层实现"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&text=Redis核心原理与实战(3) 底层实现"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&is_video=false&description=Redis核心原理与实战(3) 底层实现"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(3) 底层实现&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&name=Redis核心原理与实战(3) 底层实现&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&t=Redis核心原理与实战(3) 底层实现"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.</span> <span class="toc-text">1. 字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%93%BE%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">2. 链表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AD%97%E5%85%B8"><span class="toc-number">3.</span> <span class="toc-text">3. 字典</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AD%97%E5%85%B8%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 字典实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-rehash"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 rehash</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.</span> <span class="toc-text">1. 字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%93%BE%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">2. 链表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AD%97%E5%85%B8"><span class="toc-number">3.</span> <span class="toc-text">3. 字典</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AD%97%E5%85%B8%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 字典实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-rehash"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 rehash</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%B7%B3%E8%B7%83%E8%A1%A8"><span class="toc-number">4.</span> <span class="toc-text">4. 跳跃表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8"><span class="toc-number">5.</span> <span class="toc-text">5. 压缩列表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88"><span class="toc-number">6.</span> <span class="toc-text">6. 整数集合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1"><span class="toc-number">7.</span> <span class="toc-text">对象</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -128,7 +131,7 @@
   <header>
     
     <h1 class="posttitle" itemprop="name headline">
-        Redis核心原理与实战(2) 底层实现
+        Redis核心原理与实战(3) 底层实现
     </h1>
 
 
@@ -140,7 +143,7 @@
       
     <div class="postdate">
       
-        <time datetime="2022-02-06T02:13:20.000Z" itemprop="datePublished">2022-02-06</time>
+        <time datetime="2022-02-06T02:23:20.000Z" itemprop="datePublished">2022-02-06</time>
         
       
     </div>
@@ -197,6 +200,41 @@
 </li>
 <li>收缩：负载因子小于 0.1</li>
 </ul>
+<h2 id="4-跳跃表"><a href="#4-跳跃表" class="headerlink" title="4. 跳跃表"></a>4. 跳跃表</h2><p>跳跃表是 Redis 有序集合的基础，是多层有序链表。</p>
+<p>传统的有序链表插入和查找的复杂度都为 O(n)，如果我们将有序链表的节点分层，每一层都是有序链表，在查找时从最高层开始查找，如果 next 节点大于要寻找的值或 next 为空，则到下一层查找，即可完成 O(logn) 的查找复杂度。跳表的具体实现不在此介绍，感兴趣的读者可以翻阅数据结构教材查看。</p>
+<p><img src="跳表.png" alt="alt"></p>
+<h2 id="5-压缩列表"><a href="#5-压缩列表" class="headerlink" title="5. 压缩列表"></a>5. 压缩列表</h2><p>压缩列表 ziplist 本质上是个字节数组，是 Redis 为了节约内存而设计的一种线性数据结构，Redis 的游戏集合、哈希和列表都使用了压缩列表。</p>
+<p>ziplist 的结构如下图所示。</p>
+<p><img src="压缩列表示意.png" alt="alt"></p>
+<ul>
+<li>zlbytes：压缩列表的字节长度</li>
+<li>zltail：压缩列表尾元素相对于压缩列表起始地址的偏移量</li>
+<li>zllen：压缩列表的元素个数</li>
+<li>entryX：压缩列表存储的元素，可以是字节数组或者整数，长度不限</li>
+<li>zlend：压缩列表的结尾标志符，恒为0xFF</li>
+</ul>
+<p>根据上面的结构，我们很容易就可以得到压缩列表的字节长度、元素个数等，那么对于任意一个元素，如何判断其类型，以其元素的长度呢？</p>
+<p>回到这些问题前，首先需要了解元素的结构，如下图所示。</p>
+<p><img src="压缩列表元素结构.png" alt="alt"></p>
+<ul>
+<li>previous_entry_length：前一个元素的字节长度</li>
+<li>encoding：编码，当前元素的数据类型，整数或者字节数组</li>
+<li>content：数据内容</li>
+</ul>
+<p>ziplist 遍历时从尾部开始遍历（通过 ztail 定位），根据 previous_entry_length 即可不断向前遍历，直到表头节点。</p>
+<h2 id="6-整数集合"><a href="#6-整数集合" class="headerlink" title="6. 整数集合"></a>6. 整数集合</h2><p>整数集合 intset 用于保存整数值的集合，可以保存 int16_t、int32_t、int64_t 的整数值。</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">intset</span> &#123;</span></span><br><span class="line">    <span class="comment">// 编码方式</span></span><br><span class="line">    <span class="keyword">uint32_t</span> encoding;</span><br><span class="line">    <span class="comment">// 包含元素个数</span></span><br><span class="line">    <span class="keyword">uint32_t</span> length;</span><br><span class="line">    <span class="comment">// 存储元素的数组</span></span><br><span class="line">    <span class="keyword">int8_t</span> contents[];</span><br><span class="line">&#125; intset;</span><br></pre></td></tr></table></figure>
+<p>intset 的插入可能会触发升级</p>
+<ul>
+<li>触发条件：添加的新元素超过当前类型能表示的范围（过大或者过小），则会触发升级</li>
+<li>过程：根据新元素类型拓展数组，并转换原有元素，之后添加新元素（只会放在最后或者 0 号位置）</li>
+<li>自动升级的优点：灵活，节省内存</li>
+</ul>
+<h2 id="对象"><a href="#对象" class="headerlink" title="对象"></a>对象</h2><p>上文陆续介绍了 Redis 使用到的主要数据结构和底层实现，但 Redis 并没有直接使用这些数据结构来实现，而是创建了一个对象系统，包含字符串、列表、哈希、集合和有序集合五种对象，主要有以下两个优点：</p>
+<ul>
+<li>Redis会根据场景为对象选择特定的数据结构，来优化效率</li>
+<li>使用引用计数来实现统一的内存回收</li>
+</ul>
 
   </div>
 </article>
@@ -220,22 +258,22 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.</span> <span class="toc-text">1. 字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%93%BE%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">2. 链表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AD%97%E5%85%B8"><span class="toc-number">3.</span> <span class="toc-text">3. 字典</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AD%97%E5%85%B8%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 字典实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-rehash"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 rehash</span></a></li></ol></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.</span> <span class="toc-text">1. 字符串</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%93%BE%E8%A1%A8"><span class="toc-number">2.</span> <span class="toc-text">2. 链表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%AD%97%E5%85%B8"><span class="toc-number">3.</span> <span class="toc-text">3. 字典</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E5%AD%97%E5%85%B8%E5%AE%9E%E7%8E%B0"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 字典实现</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-rehash"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 rehash</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E8%B7%B3%E8%B7%83%E8%A1%A8"><span class="toc-number">4.</span> <span class="toc-text">4. 跳跃表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E5%8E%8B%E7%BC%A9%E5%88%97%E8%A1%A8"><span class="toc-number">5.</span> <span class="toc-text">5. 压缩列表</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%95%B4%E6%95%B0%E9%9B%86%E5%90%88"><span class="toc-number">6.</span> <span class="toc-text">6. 整数集合</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1"><span class="toc-number">7.</span> <span class="toc-text">对象</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&text=Redis核心原理与实战(2) 底层实现"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&is_video=false&description=Redis核心原理与实战(2) 底层实现"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(2) 底层实现&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(2) 底层实现"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&name=Redis核心原理与实战(2) 底层实现&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&t=Redis核心原理与实战(2) 底层实现"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&text=Redis核心原理与实战(3) 底层实现"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&is_video=false&description=Redis核心原理与实战(3) 底层实现"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(3) 底层实现&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&title=Redis核心原理与实战(3) 底层实现"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&name=Redis核心原理与实战(3) 底层实现&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/&t=Redis核心原理与实战(3) 底层实现"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>

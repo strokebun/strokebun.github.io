@@ -8,20 +8,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
     <meta name="description" content="1. 复制1.1 介绍对于单机的 Redis，有 RDB 和 AOF 持久化机制，在宕机过后可以恢复数据，但在恢复过程中仍然存在不可用的问题。对于这个问题，Redis 提供了主从库模式，主从库采用读写分离的方式，写操作都作用在主库，并同步给从库。 可以通过 relicaof 指令形成主从库，例如现有实例 1（ip: 172.16.19.3）和实例 2，在实例 2 上执行以下命令，实例 2 就变成了">
 <meta property="og:type" content="article">
-<meta property="og:title" content="Redis核心原理与实战(3) 高可用">
-<meta property="og:url" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/index.html">
+<meta property="og:title" content="Redis核心原理与实战(2) 高可用">
+<meta property="og:url" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/index.html">
 <meta property="og:site_name" content="面向money编程">
 <meta property="og:description" content="1. 复制1.1 介绍对于单机的 Redis，有 RDB 和 AOF 持久化机制，在宕机过后可以恢复数据，但在恢复过程中仍然存在不可用的问题。对于这个问题，Redis 提供了主从库模式，主从库采用读写分离的方式，写操作都作用在主库，并同步给从库。 可以通过 relicaof 指令形成主从库，例如现有实例 1（ip: 172.16.19.3）和实例 2，在实例 2 上执行以下命令，实例 2 就变成了">
 <meta property="og:locale" content="zh_CN">
-<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/主从库同步.png">
-<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/级联从库.png">
-<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/增量复制.png">
-<meta property="article:published_time" content="2022-02-06T02:23:55.000Z">
-<meta property="article:modified_time" content="2022-02-06T11:49:21.323Z">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/主从库同步.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/级联从库.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/增量复制.png">
+<meta property="article:published_time" content="2022-02-06T02:13:55.000Z">
+<meta property="article:modified_time" content="2022-02-07T09:08:21.950Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/主从库同步.png">
+<meta name="twitter:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/主从库同步.png">
     
     
       
@@ -41,7 +41,7 @@
       
     
     <!-- title -->
-    <title>Redis核心原理与实战(3) 高可用</title>
+    <title>Redis核心原理与实战(2) 高可用</title>
     <!-- styles -->
     
 <link rel="stylesheet" href="/css/style.css">
@@ -86,10 +86,10 @@
     <span id="actions">
       <ul>
         
-        <li><a class="icon" aria-label="上一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(4)%20%E5%AE%9E%E6%88%98/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="上一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fas fa-chevron-left" aria-hidden="true" onmouseover="$('#i-prev').toggle();" onmouseout="$('#i-prev').toggle();"></i></a></li>
         
         
-        <li><a class="icon" aria-label="下一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
+        <li><a class="icon" aria-label="下一篇" href="/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(1)%20%E4%BB%8B%E7%BB%8D/"><i class="fas fa-chevron-right" aria-hidden="true" onmouseover="$('#i-next').toggle();" onmouseout="$('#i-next').toggle();"></i></a></li>
         
         <li><a class="icon" aria-label="返回顶部" href="#" onclick="$('html, body').animate({ scrollTop: 0 }, 'fast');"><i class="fas fa-chevron-up" aria-hidden="true" onmouseover="$('#i-top').toggle();" onmouseout="$('#i-top').toggle();"></i></a></li>
         <li><a class="icon" aria-label="分享文章" href="#"><i class="fas fa-share-alt" aria-hidden="true" onmouseover="$('#i-share').toggle();" onmouseout="$('#i-share').toggle();" onclick="$('#share').toggle();return false;"></i></a></li>
@@ -102,17 +102,17 @@
     <br/>
     <div id="share" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&text=Redis核心原理与实战(3) 高可用"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&is_video=false&description=Redis核心原理与实战(3) 高可用"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(3) 高可用&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&name=Redis核心原理与实战(3) 高可用&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&t=Redis核心原理与实战(3) 高可用"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fab fa-facebook " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&text=Redis核心原理与实战(2) 高可用"><i class="fab fa-twitter " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-linkedin " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&is_video=false&description=Redis核心原理与实战(2) 高可用"><i class="fab fa-pinterest " aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(2) 高可用&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fas fa-envelope " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-get-pocket " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-reddit " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-stumbleupon " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-digg " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&name=Redis核心原理与实战(2) 高可用&description="><i class="fab fa-tumblr " aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&t=Redis核心原理与实战(2) 高可用"><i class="fab fa-hacker-news " aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
@@ -129,7 +129,7 @@
   <header>
     
     <h1 class="posttitle" itemprop="name headline">
-        Redis核心原理与实战(3) 高可用
+        Redis核心原理与实战(2) 高可用
     </h1>
 
 
@@ -141,7 +141,7 @@
       
     <div class="postdate">
       
-        <time datetime="2022-02-06T02:23:55.000Z" itemprop="datePublished">2022-02-06</time>
+        <time datetime="2022-02-06T02:13:55.000Z" itemprop="datePublished">2022-02-06</time>
         
       
     </div>
@@ -236,17 +236,17 @@
 
     <div id="share-footer" style="display: none">
       <ul>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&text=Redis核心原理与实战(3) 高可用"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&is_video=false&description=Redis核心原理与实战(3) 高可用"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(3) 高可用&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(3) 高可用"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&name=Redis核心原理与实战(3) 高可用&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
-  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&t=Redis核心原理与实战(3) 高可用"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.facebook.com/sharer.php?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fab fa-facebook fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://twitter.com/share?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&text=Redis核心原理与实战(2) 高可用"><i class="fab fa-twitter fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.linkedin.com/shareArticle?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-linkedin fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://pinterest.com/pin/create/bookmarklet/?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&is_video=false&description=Redis核心原理与实战(2) 高可用"><i class="fab fa-pinterest fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" href="mailto:?subject=Redis核心原理与实战(2) 高可用&body=Check out this article: https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/"><i class="fas fa-envelope fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://getpocket.com/save?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-get-pocket fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://reddit.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-reddit fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.stumbleupon.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-stumbleupon fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://digg.com/submit?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&title=Redis核心原理与实战(2) 高可用"><i class="fab fa-digg fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="http://www.tumblr.com/share/link?url=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&name=Redis核心原理与实战(2) 高可用&description="><i class="fab fa-tumblr fa-lg" aria-hidden="true"></i></a></li>
+  <li><a class="icon" target="_blank" rel="noopener" href="https://news.ycombinator.com/submitlink?u=https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(2)%20%E9%AB%98%E5%8F%AF%E7%94%A8/&t=Redis核心原理与实战(2) 高可用"><i class="fab fa-hacker-news fa-lg" aria-hidden="true"></i></a></li>
 </ul>
 
     </div>
