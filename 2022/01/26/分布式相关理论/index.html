@@ -14,8 +14,9 @@
 <meta property="og:description" content="1. CAPCAP 是分布式系统的三个指标：  Consistency：一致性 Availability：可用性 Partition Tolerance：分区容错性  1.1 介绍一致性一致性指在更新操作完成之后，所有节点在同一时间的数据完全一致，不存在中间状态。 数据一致性可分为：  强一致性：任意时刻客户端获取到的各个节点数据都是一致的 最终一致性：允许存在中间状态，但要求经过一段时间之后，数">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://strokebun.github.io/2022/01/26/%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E7%90%86%E8%AE%BA/cap.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/01/26/%E5%88%86%E5%B8%83%E5%BC%8F%E7%9B%B8%E5%85%B3%E7%90%86%E8%AE%BA/pacelc.png">
 <meta property="article:published_time" content="2022-01-26T06:57:44.000Z">
-<meta property="article:modified_time" content="2022-01-26T08:08:58.556Z">
+<meta property="article:modified_time" content="2022-02-08T09:35:04.260Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="分布式">
 <meta name="twitter:card" content="summary">
@@ -115,7 +116,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-CAP"><span class="toc-number">1.</span> <span class="toc-text">1. CAP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">1.1.1.</span> <span class="toc-text">一致性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">可用性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E5%AE%B9%E9%94%99%E6%80%A7"><span class="toc-number">1.1.3.</span> <span class="toc-text">分区容错性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-CAP-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 CAP 的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.1.</span> <span class="toc-text">CP系统</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.2.</span> <span class="toc-text">AP系统</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-CAP-%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 CAP 的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-BASE%E5%AE%9A%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">2. BASE定理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%AF%E7%94%A8"><span class="toc-number">2.0.1.</span> <span class="toc-text">基本可用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%AF%E7%8A%B6%E6%80%81"><span class="toc-number">2.0.2.</span> <span class="toc-text">软状态</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.0.3.</span> <span class="toc-text">最终一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">3.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-CAP"><span class="toc-number">1.</span> <span class="toc-text">1. CAP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">1.1.1.</span> <span class="toc-text">一致性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">可用性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E5%AE%B9%E9%94%99%E6%80%A7"><span class="toc-number">1.1.3.</span> <span class="toc-text">分区容错性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-CAP-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 CAP 的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.1.</span> <span class="toc-text">CP系统</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.2.</span> <span class="toc-text">AP系统</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-CAP-%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 CAP 的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-BASE%E5%AE%9A%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">2. BASE定理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%AF%E7%94%A8"><span class="toc-number">2.0.1.</span> <span class="toc-text">基本可用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%AF%E7%8A%B6%E6%80%81"><span class="toc-number">2.0.2.</span> <span class="toc-text">软状态</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.0.3.</span> <span class="toc-text">最终一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-PACELC%E7%90%86%E8%AE%BA"><span class="toc-number">3.</span> <span class="toc-text">3. PACELC理论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -200,14 +201,24 @@
 <h4 id="最终一致性"><a href="#最终一致性" class="headerlink" title="最终一致性"></a>最终一致性</h4><p>最终一致性要求数据副本在一定时间之后，能够达到一致的状态。</p>
 <p>最终一致性可分为</p>
 <ul>
-<li><p>因果一致性：进程 A 更新数据后通知进程 B，进程 B 对包含该项数据的范围都是 A 更新后的值</p>
-</li>
-<li><p>单调读：如果之前读到新的数据，后续读取不会得到更旧的数据。单调读一致性保证强于最终一致性，弱于强一致性</p>
-</li>
-<li><p>单调写：系统需要保证来⾃同⼀个进程的写操作被顺序执行</p>
-</li>
-<li><p>读写一致性：用户获取到的自身修改是最新的，其他用户的更新可能稍后才会看到</p>
-</li>
+<li>因果一致性：进程 A 更新数据后通知进程 B，进程 B 对包含该项数据的范围都是 A 更新后的值</li>
+<li>单调读：如果之前读到新的数据，后续读取不会得到更旧的数据。单调读一致性保证强于最终一致性，弱于强一致性</li>
+<li>单调写：系统需要保证来⾃同⼀个进程的写操作被顺序执行</li>
+<li>读写一致性：用户获取到的自身修改是最新的，其他用户的更新可能稍后才会看到</li>
+</ul>
+<h2 id="3-PACELC理论"><a href="#3-PACELC理论" class="headerlink" title="3. PACELC理论"></a>3. PACELC理论</h2><p>分布式环境由于以下原因不存在绝对的强一致性：</p>
+<ul>
+<li>信息传播需要时间，有时间就有延迟，有延迟就会产生不一致</li>
+<li>在网络中传递的信息可能是过时的</li>
+<li>网络是不可靠的</li>
+</ul>
+<p>我们日常提到的强一致性，是从观察者的角度，即客户端获取的数据是一致的。PACELC 理论是 CAP 的拓展，其中 C、A、P 没有变化，而是引入了 Latency（延迟 L）和 E （Else）。</p>
+<p><img src="pacelc.png" alt="alt"></p>
+<p>也就是说，当分区 P 出现时，需要在可用性 A 和一致性 C 中权衡；而当 P 出现时，需要在延迟 L 和 C 中做权衡。换句话说，达成一致的节点越多，响应速度越慢。</p>
+<p> PACELC 的作用是提供以下指导意义：</p>
+<ul>
+<li>半同步复制：例如 MySQL 主从架构，master节点只要收到一个 slave 节点写入磁盘成功的响应，即可将结果返回给客户端，减少响应时间。这样，即使 master 节点挂了，也有一个 slave 节点的数据是完整的；</li>
+<li>主从分离：不要求主从之间的强一致性事务约束，从节点的数据可以存在一小段时间延迟。</li>
 </ul>
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/30329536/">数据密集型应用系统设计</a></li>
@@ -215,6 +226,7 @@
 <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/31346392">如何理解数据库事务中的一致性的概念?</a></li>
 <li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/54105974/answer/1643846752">CAP中的P到底是个什么意思</a></li>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Eventual_consistency">Eventual consistency</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/30443578/">软件架构设计 大型网站技术架构与业务架构融合之道</a></li>
 </ul>
 
   </div>
@@ -239,7 +251,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-CAP"><span class="toc-number">1.</span> <span class="toc-text">1. CAP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">1.1.1.</span> <span class="toc-text">一致性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">可用性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E5%AE%B9%E9%94%99%E6%80%A7"><span class="toc-number">1.1.3.</span> <span class="toc-text">分区容错性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-CAP-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 CAP 的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.1.</span> <span class="toc-text">CP系统</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.2.</span> <span class="toc-text">AP系统</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-CAP-%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 CAP 的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-BASE%E5%AE%9A%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">2. BASE定理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%AF%E7%94%A8"><span class="toc-number">2.0.1.</span> <span class="toc-text">基本可用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%AF%E7%8A%B6%E6%80%81"><span class="toc-number">2.0.2.</span> <span class="toc-text">软状态</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.0.3.</span> <span class="toc-text">最终一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">3.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-CAP"><span class="toc-number">1.</span> <span class="toc-text">1. CAP</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">1.1.1.</span> <span class="toc-text">一致性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8F%AF%E7%94%A8%E6%80%A7"><span class="toc-number">1.1.2.</span> <span class="toc-text">可用性</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%88%86%E5%8C%BA%E5%AE%B9%E9%94%99%E6%80%A7"><span class="toc-number">1.1.3.</span> <span class="toc-text">分区容错性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-CAP-%E7%9A%84%E5%BA%94%E7%94%A8"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 CAP 的应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.1.</span> <span class="toc-text">CP系统</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#AP%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.2.</span> <span class="toc-text">AP系统</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-3-CAP-%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">1.3.</span> <span class="toc-text">1.3 CAP 的不足</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-BASE%E5%AE%9A%E7%90%86"><span class="toc-number">2.</span> <span class="toc-text">2. BASE定理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%9F%BA%E6%9C%AC%E5%8F%AF%E7%94%A8"><span class="toc-number">2.0.1.</span> <span class="toc-text">基本可用</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%AF%E7%8A%B6%E6%80%81"><span class="toc-number">2.0.2.</span> <span class="toc-text">软状态</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%80%E7%BB%88%E4%B8%80%E8%87%B4%E6%80%A7"><span class="toc-number">2.0.3.</span> <span class="toc-text">最终一致性</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-PACELC%E7%90%86%E8%AE%BA"><span class="toc-number">3.</span> <span class="toc-text">3. PACELC理论</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
