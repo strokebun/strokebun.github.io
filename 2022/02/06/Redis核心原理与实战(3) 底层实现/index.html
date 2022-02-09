@@ -21,7 +21,7 @@
 <meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/quicklist.png">
 <meta property="og:image" content="https://strokebun.github.io/2022/02/06/Redis%E6%A0%B8%E5%BF%83%E5%8E%9F%E7%90%86%E4%B8%8E%E5%AE%9E%E6%88%98(3)%20%E5%BA%95%E5%B1%82%E5%AE%9E%E7%8E%B0/基本类型底层实现.png">
 <meta property="article:published_time" content="2022-02-06T02:23:20.000Z">
-<meta property="article:modified_time" content="2022-02-07T11:22:20.635Z">
+<meta property="article:modified_time" content="2022-02-09T12:36:48.887Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="Redis">
 <meta name="twitter:card" content="summary">
@@ -216,7 +216,7 @@
 <li>zlend：压缩列表的结尾标志符，恒为0xFF</li>
 </ul>
 <p>根据上面的结构，我们很容易就可以得到压缩列表的字节长度、元素个数等，那么对于任意一个元素，如何判断其类型，以其元素的长度呢？</p>
-<p>回到这些问题前，首先需要了解元素的结构，如下图所示。</p>
+<p>回答这些问题前，首先需要了解元素的结构，如下图所示。</p>
 <p><img src="压缩列表元素结构.png" alt="alt"></p>
 <ul>
 <li>previous_entry_length：前一个元素的字节长度</li>
