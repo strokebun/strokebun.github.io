@@ -6,22 +6,32 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="HandheldFriendly" content="True">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5" />
-    <meta name="description" content="1. 垃圾识别1.1 GC介绍在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露；如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃；另外，可能出现错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，使用 C 语言往往会遇到令人头疼的段错误。以上问题出现的时间">
+    <meta name="description" content="1. 垃圾识别1.1 GC介绍在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露，如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃。另外，程序员可能会错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，往往会遇到令人头疼的段错误。以上问题出现的时间可能不一致">
 <meta property="og:type" content="article">
 <meta property="og:title" content="JVM系列(3) 垃圾回收">
 <meta property="og:url" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/index.html">
 <meta property="og:site_name" content="面向money编程">
-<meta property="og:description" content="1. 垃圾识别1.1 GC介绍在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露；如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃；另外，可能出现错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，使用 C 语言往往会遇到令人头疼的段错误。以上问题出现的时间">
+<meta property="og:description" content="1. 垃圾识别1.1 GC介绍在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露，如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃。另外，程序员可能会错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，往往会遇到令人头疼的段错误。以上问题出现的时间可能不一致">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/漏标记.png">
 <meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/标记清除.png">
 <meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/标记复制.png">
 <meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/标记整理.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/cms.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/g1.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/zgc的目标.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/染色指针.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/内存映射.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/读屏障.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/zgc周期.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/视图转变.png">
+<meta property="og:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/总结.png">
 <meta property="article:published_time" content="2022-02-09T11:09:41.000Z">
-<meta property="article:modified_time" content="2022-02-09T12:34:28.654Z">
+<meta property="article:modified_time" content="2022-02-10T09:16:44.167Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/标记清除.png">
+<meta name="twitter:image" content="https://strokebun.github.io/2022/02/09/JVM%E7%B3%BB%E5%88%97(3)%20%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6/漏标记.png">
     
     
       
@@ -115,7 +125,7 @@
 
     </div>
     <div id="toc">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.</span> <span class="toc-text">1. 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-GC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 GC介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.2.1 引用计数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2.2 可达性分析</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">2. 垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 分代收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%AF%E8%AF%AD%E5%AE%9A%E4%B9%89"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 术语定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 标记-清除算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 标记-复制算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 标记-整理算法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">3. 垃圾收集器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.</span> <span class="toc-text">1. 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-GC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 GC介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.2.1 引用计数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2.2 可达性分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">三色标记</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">2. 垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 分代收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%AF%E8%AF%AD%E5%AE%9A%E4%B9%89"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 术语定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 标记-清除算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 标记-复制算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 标记-整理算法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">3. 垃圾收集器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Serial-%E5%92%8C-Serial-Old"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Serial 和 Serial Old</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-ParNew"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 ParNew</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Parallel-Scavenge-%E5%92%8C-Paralllel-Old"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Parallel Scavenge 和 Paralllel Old</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-CMS"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 CMS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-G1"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 G1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-ZGC"><span class="toc-number">3.6.</span> <span class="toc-text">3.6 ZGC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.6.1.</span> <span class="toc-text">3.6.1 介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-2-%E6%9F%93%E8%89%B2%E6%8C%87%E9%92%88%E5%92%8C%E8%AF%BB%E5%B1%8F%E9%9A%9C"><span class="toc-number">3.6.2.</span> <span class="toc-text">3.6.2 染色指针和读屏障</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9F%93%E8%89%B2%E6%8C%87%E9%92%88"><span class="toc-number">3.6.2.1.</span> <span class="toc-text">染色指针</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%AF%BB%E5%B1%8F%E9%9A%9C"><span class="toc-number">3.6.2.2.</span> <span class="toc-text">读屏障</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-3-%E5%9C%B0%E5%9D%80%E8%A7%86%E5%9B%BE%E5%88%87%E6%8D%A2"><span class="toc-number">3.6.3.</span> <span class="toc-text">3.6.3 地址视图切换</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93%E5%9B%BE"><span class="toc-number">4.</span> <span class="toc-text">4. 总结图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">参考资料</span></a></li></ol>
     </div>
   </span>
 </div>
@@ -159,8 +169,8 @@
   
 
   <div class="content" itemprop="articleBody">
-    <h2 id="1-垃圾识别"><a href="#1-垃圾识别" class="headerlink" title="1. 垃圾识别"></a>1. 垃圾识别</h2><h3 id="1-1-GC介绍"><a href="#1-1-GC介绍" class="headerlink" title="1.1 GC介绍"></a>1.1 GC介绍</h3><p>在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露；如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃；另外，可能出现错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，使用 C 语言往往会遇到令人头疼的段错误。以上问题出现的时间又可能不一致，导致这类 BUG 难以定位。</p>
-<p>为了摆脱手动管理内存的困境，Garbarge Collection，GC，垃圾回收机制应运而生，对象如果不再使用，其占用的内存将会自动被回收。后来出现的大部分语言，例如 Java、Go、C# 等都引入了垃圾回收机制。</p>
+    <h2 id="1-垃圾识别"><a href="#1-垃圾识别" class="headerlink" title="1. 垃圾识别"></a>1. 垃圾识别</h2><h3 id="1-1-GC介绍"><a href="#1-1-GC介绍" class="headerlink" title="1.1 GC介绍"></a>1.1 GC介绍</h3><p>在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露，如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃。另外，程序员可能会错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，往往会遇到令人头疼的段错误。以上问题出现的时间可能不一致，导致这类 BUG 难以定位。</p>
+<p>为了摆脱手动管理内存的困境，Garbarge Collection，GC，垃圾回收机制应运而生。对象如果不再使用，其占用的内存将会自动被回收，后来出现的大部分语言，例如 Java、Go、C# 等都引入了垃圾回收机制。</p>
 <h3 id="1-2-垃圾识别"><a href="#1-2-垃圾识别" class="headerlink" title="1.2 垃圾识别"></a>1.2 垃圾识别</h3><p>在回收对象内存之前，需要先判断该对象是否存活，有两种经典的算法：</p>
 <ul>
 <li>引用计数</li>
@@ -169,11 +179,11 @@
 <h4 id="1-2-1-引用计数"><a href="#1-2-1-引用计数" class="headerlink" title="1.2.1 引用计数"></a>1.2.1 引用计数</h4><p>引用计数的思路是，在对象中添加一个引用计数器，当被引用时，计数 +1，引用失效时，计数 -1。如果计数器的值为 0，则该对象不再被使用，可以进行回收。</p>
 <p>引用计数的优点是思路简单，可以立即回收垃圾，暂停时间短。</p>
 <p>引用计数无法解决循环依赖的问题，例如 A 引用了 B，B 又引用了 A，那么两个对象的计数永远不为 0，也不会被回收。</p>
-<p>使用引用计数的语言有 Swift、C++ 11 中的 shared_ptr，为了解决循环依赖问题，这两种编程语言都提出了弱引用的概念，弱引用不会增加引用计数。</p>
+<p>使用引用计数的语言有 Swift、C++ 11 中的 shared_ptr 等，为了解决循环依赖问题，这两种编程语言都提出了弱引用的概念，弱引用不会增加引用计数。</p>
 <blockquote>
-<p>虽然使用弱引用可以解决循环依赖问题，但是程序员需要判断该场景是否需要使用弱引用，在复杂的循环对象引用中这仍是一件痛苦的事情。</p>
+<p>虽然使用弱引用可以解决循环依赖问题，但是程序员需要判断该场景是否需要使用弱引用，在复杂的循环引用中这仍是一件痛苦的事情。</p>
 </blockquote>
-<h4 id="1-2-2-可达性分析"><a href="#1-2-2-可达性分析" class="headerlink" title="1.2.2 可达性分析"></a>1.2.2 可达性分析</h4><p>另一种更加主流的机制是使用可达性分析，其思路是通过存活的一些根节点对象，根据他们的引用关系向下搜索，所经过的路径称为引用链，如果对象在引用链上不可达，便可以被回收。大部分商用语言 Java、C#、Go 都使用了可达性分析。</p>
+<h4 id="1-2-2-可达性分析"><a href="#1-2-2-可达性分析" class="headerlink" title="1.2.2 可达性分析"></a>1.2.2 可达性分析</h4><h5 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h5><p>另一种更加主流的机制是使用可达性分析，其思路是通过存活的一些根节点对象，根据他们的引用关系向下搜索，所经过的路径称为引用链，如果对象在引用链上不可达，便可以被回收。大部分商用语言 Java、C#、Go 都使用了可达性分析。</p>
 <p>在 Java 中，这些存活的根节点称为 GCRoots，固定包含：</p>
 <ul>
 <li>虚拟机栈中引用的对象，例如栈帧中的方法参数、局部变量等；</li>
@@ -183,14 +193,33 @@
 <li>虚拟机内部的引用，例如基本数据类型包装类的 Class 对象，常驻异常对象，系统类加载器；</li>
 <li>被 synchronized 锁持有的对象。</li>
 </ul>
+<h5 id="三色标记"><a href="#三色标记" class="headerlink" title="三色标记"></a>三色标记</h5><p>直接利用可达性分析识别垃圾时需要暂停所有用户线程，即 STW（Stop The World）来保证引用关系的正确性。其中枚举 GCRoots 在优化下已经十分高效，但根据引用链遍历的过程与对象数量和结构相关，耗时严重。</p>
+<p>为了解决上述问题，引入了三色标记算法。</p>
+<p>顾名思义，这个算法将 GC 过程中的对象分为三种：</p>
+<ul>
+<li>白色：还未搜索过的对象</li>
+<li>灰色：正在搜索的对象</li>
+<li>黑色：搜索完成的对象</li>
+</ul>
+<p>GC 开始前所有对象都是白色，首先将 GCRoots 标记为灰色，利用广度优先搜索的思想，不断取出灰色对象 G，并将 G 引用的所有对象 S1、S2 都标记为灰色，最后将 G 标记为黑色。之后将不断重复上述过程，标记结束之后存活对象均为黑色，垃圾均为白色。</p>
+<p>三色标记过程可以与用户线程并发执行，但在标记过程中用户线程可能改变引用关系，导致将存活的对象标记为白色，程序发生错误，如下图所示。</p>
+<p><img src="漏标记.png" alt="alt"></p>
+<p>(a) 中 A 为黑色，B 为灰色，此时将要遍历 B 引用的对象，(b) (c) 中用户线程去掉了 B 到 C 的引用，增加了 A 到 C 的引用，此时 C 理应存活，但 A 已经遍历结束，已经没有引用链可以到达 C，C 被标记为白色，GC 过程中将被回收。</p>
+<p>科学家们证明了上述漏标出现需要同时满足两个条件：</p>
+<ul>
+<li>插入了黑色对象到白色对象的引用</li>
+<li>删除了所有灰色对象到该白色对应的引用</li>
+</ul>
+<p>破坏条件 1 的方案为增量更新，黑色对象新增对白色对象的引用，将变为灰色。</p>
+<p>破坏条件 2 的方案为原始快照，当灰色对象删除到白色对象的引用时，记录这些灰色对象，在并发扫描结束后，重新扫描这些灰色对象。</p>
 <h2 id="2-垃圾收集算法"><a href="#2-垃圾收集算法" class="headerlink" title="2. 垃圾收集算法"></a>2. 垃圾收集算法</h2><h3 id="2-1-分代收集"><a href="#2-1-分代收集" class="headerlink" title="2.1 分代收集"></a>2.1 分代收集</h3><p>主流的垃圾收集器都遵守了分代收集的理论，即在不同的区域使用不同的垃圾收集算法，其建立在两个假设上：</p>
 <ul>
 <li>绝大多数对象创建后不久就会被回收；</li>
 <li>多次未被垃圾回收的对象越难消亡。</li>
 </ul>
 <p>这两个假设给出了垃圾收集器的设计原则，将堆分为不同的区域，新生代和老年代。新生代中的对象大概率会被回收，而存活的对象将逐步晋升到老年代。</p>
-<p>但如果新生代和老年代的对象可能互相引用，即跨代引用，将导致每次 GC 都需要使用可达性分析遍历新生代和老年代，性能开销大。为此在新生代建立数据结构，标记老年代的某一块内存存在跨代引用，当新生代发生 Minor GC 时，只有那块内存会被加入了 GCRoots 进行扫描，提高了 GC 的性能。</p>
-<h3 id="2-2-术语定义"><a href="#2-2-术语定义" class="headerlink" title="2.2 术语定义"></a>2.2 术语定义</h3><p>上文提到了 Minor GC，为防止混淆，给出 hotspot 常用的 GC 类型：</p>
+<p>但如果新生代和老年代的对象互相引用，即跨代引用，将导致每次 GC 都需要使用可达性分析遍历新生代和老年代，性能开销大。为此在新生代建立一种数据结构卡表，卡表会标记老年代的某一块内存存在跨代引用，当新生代发生 Minor GC 时，只有那块内存会被加入了 GCRoots 进行扫描，提高了 GC 的效率。</p>
+<h3 id="2-2-术语定义"><a href="#2-2-术语定义" class="headerlink" title="2.2 术语定义"></a>2.2 术语定义</h3><p>hotspot 常用的 GC 类型：</p>
 <ul>
 <li>部分收集：针对堆中某些部分进行垃圾收集<ul>
 <li>Minor GC：也成 Young GC，在新生代进行收集；</li>
@@ -205,7 +234,7 @@
 </blockquote>
 <p>接下来将介绍三个常见的垃圾收集算法。</p>
 <h3 id="2-3-标记-清除算法"><a href="#2-3-标记-清除算法" class="headerlink" title="2.3 标记-清除算法"></a>2.3 标记-清除算法</h3><p>标记-清除算法首先标记需要回收的对象，在标记完成后，回收被标记的对象。</p>
-<p>该算法优点是直观简单，但有两个主要缺点：</p>
+<p>该算法优点是直观简单，但有以下缺点：</p>
 <ul>
 <li>执行效率随需要被回收的对象数量增加</li>
 <li>产生内存碎片</li>
@@ -213,17 +242,110 @@
 </ul>
 <p><img src="标记清除.png" alt="alt"></p>
 <h3 id="2-4-标记-复制算法"><a href="#2-4-标记-复制算法" class="headerlink" title="2.4 标记-复制算法"></a>2.4 标记-复制算法</h3><p>标记-复制算法将内存分为相等的两块 T1 和 T2，每次只使用其中一块，发生 GC 时，将 T1 存活的对象复制到 T2，并回收 T1，交换 T1 和 T2 的角色。</p>
-<p>标记-复制算法解决了标记-清除算法面对大量可回收对象效率低下的问题，但是可用内存缩小了原来的一半，更容易发生 GC。</p>
+<p>标记-复制算法解决了标记-清除算法面对大量可回收对象效率低下的问题，但是可用内存缩小了原来的一半，更容易发生 GC，故常用在新生代。</p>
 <p><img src="标记复制.png" alt="alt"></p>
 <h3 id="2-5-标记-整理算法"><a href="#2-5-标记-整理算法" class="headerlink" title="2.5 标记-整理算法"></a>2.5 标记-整理算法</h3><p>标记-整理算法的标记过程与标记-清除算法相同，但后续不是直接回收对象，而是让存活的对象往一端移动，并清理到边界以外的对象。</p>
 <p><img src="标记整理.png" alt="alt"></p>
-<p>整理的过程需要暂停所有用户线程，即 STW（Stop The World），如果内存中只有少量存活对象，那么标记-整理算法既高效又节约内存。但如果存在大量存活对象，标记-整理算法将十分低效。</p>
-<h2 id="3-垃圾收集器"><a href="#3-垃圾收集器" class="headerlink" title="3. 垃圾收集器"></a>3. 垃圾收集器</h2><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
-<li><p><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497/">深入理解Java虚拟机</a></p>
-</li>
-<li><p><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26821357/">垃圾回收的算法与实现</a></p>
-</li>
-<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/41922036">Major GC和Full GC的区别是什么？ R大的回答</a></li>
+<p>整理的过程需要 STW，如果内存中只有少量存活对象，那么标记-整理算法既高效又节约内存，常用在老年代。但如果存在大量存活对象，标记-整理算法将十分低效。</p>
+<h2 id="3-垃圾收集器"><a href="#3-垃圾收集器" class="headerlink" title="3. 垃圾收集器"></a>3. 垃圾收集器</h2><p>接下来将介绍 hotspot 中的垃圾收集器。</p>
+<h3 id="3-1-Serial-和-Serial-Old"><a href="#3-1-Serial-和-Serial-Old" class="headerlink" title="3.1 Serial 和 Serial Old"></a>3.1 Serial 和 Serial Old</h3><p>Serial 是新生代的收集器，使用标记-复制算法，只使用一个线程去完成 GC 工作，并且整个过程需要 STW。</p>
+<p>Serial 是老年代的收集器，使用标记-整理算法，其他特点与 Serial 相同。</p>
+<h3 id="3-2-ParNew"><a href="#3-2-ParNew" class="headerlink" title="3.2 ParNew"></a>3.2 ParNew</h3><p>ParNew 是 Serial 的多线程版本，使用多线程在新生代进行 GC，其余均与 Serial 相同，整个过程仍需 STW。</p>
+<h3 id="3-3-Parallel-Scavenge-和-Paralllel-Old"><a href="#3-3-Parallel-Scavenge-和-Paralllel-Old" class="headerlink" title="3.3 Parallel Scavenge 和 Paralllel Old"></a>3.3 Parallel Scavenge 和 Paralllel Old</h3><p>Parallel Scavenge 是新生代的收集器，采用标记-复制算法，关注吞吐量，其中 吞吐量 = 用户代码运行时间 / (用户代码运行时间 + GC 运行时间)，它会根据用户设置的预期吞吐量自行分配堆运行。</p>
+<p>Parallel Old 是 Parallel Scavenge 的老年代版本，采用标记-整理算法。</p>
+<h3 id="3-4-CMS"><a href="#3-4-CMS" class="headerlink" title="3.4 CMS"></a>3.4 CMS</h3><p>Concurrent Mark Sweep，CMS，是一款老年代收集器，基于标记-清除算法，其关注点是 <strong>STW 的时间尽可能短</strong>。</p>
+<p>CMS 的 GC 分为四个过程：</p>
+<ul>
+<li>初始标记：标记 GCRoots 直接引用的对象，需要 STW</li>
+<li>并发标记：遍历引用链进行三色标记，CMS 避免误标的方式是使用增量更新</li>
+<li>重新标记：使用增量更新重新标记，需要 STW</li>
+<li>并发清除：清除所有的对象</li>
+</ul>
+<blockquote>
+<p>在上文收集算法中提出，老年代常使用的标记-整理算法需要 STW。CMS 的关注点是暂停时间，这是 CMS 虽然是老年代收集器，但使用标记-清除算法的原因。</p>
+</blockquote>
+<p><img src="cms.png" alt="alt"></p>
+<p>虽然 CMS 带来了极低的暂停时间，但也存在以下问题：</p>
+<ul>
+<li>在 CPU 核心数较低时开销较大，CMS 的回收线程配置为 （处理器核心数量 +3）/4，在低配计算机上 GC 过程会影响用户体验；</li>
+<li>无法处理浮动垃圾，即并发标记和并发删除期间，用户线程产生的垃圾无法在本次 GC 回收；</li>
+<li>采用标记-清除算法带来的内存碎片。</li>
+</ul>
+<h3 id="3-5-G1"><a href="#3-5-G1" class="headerlink" title="3.5 G1"></a>3.5 G1</h3><p>Garbage Firtst，G1，其目标是 <strong>soft real time</strong>，在固定时间内，停顿的时间不超过预期，例如在任意 1s 内，停顿的时间不超过 10ms。</p>
+<p>为了实现可预测的停顿时间，G1 将堆内存化整为零，将堆内存划分为多个大小相同的区域 Region，每个 Region 根据需要可以成为新生代和老年代，并采用不同的策略进行处理。Region 是回收的最小单位，每个 Region 都会根据可回收的空间和回收所需时间维护优先级，优先回收高优先级的 Region。</p>
+<p>由于将堆分为多个 Region，G1 对以下问题进行了额外的处理：</p>
+<ul>
+<li>跨 Region 引用：维护双向卡表，记录每个 Region 的指向和被指向关系；</li>
+</ul>
+<blockquote>
+<p>双向卡表在此处主要是为了便于理解，在 G1 的论文中使用的都是记忆集 Remembered Set 。</p>
+</blockquote>
+<ul>
+<li>三色标记的误删问题：采用原始快照算法实现，并且在标记前设置了 TAMS（Top at Mark Start） 指针，并发标记期间用户线程只能在指针之间的区域创建对象。</li>
+</ul>
+<p>类似 CMS，G1 的 GC 也分为四个过程：</p>
+<ul>
+<li>初始标记：标记 GCRoots 直接引用的对象，设置 TAMS，需要 STW</li>
+<li>并发标记：遍历引用链进行标记，并记录原始快照</li>
+<li>最终标记：根据原始快照重新标记防止误删，需要 STW</li>
+<li>筛选回收：更新 Region 的优先级，将待回收 Region 的存活对象复制到空 Region中，回收整个 Region，需要 STW</li>
+</ul>
+<p><img src="g1.png" alt="alt"></p>
+<p>G1 有以下两种模式，并视情况切换：</p>
+<ul>
+<li>Young GC：回收区域为新生代的 Region，初始标记在这个过程执行</li>
+<li>Mixed GC：回收区域为新生代的 Region 和部分高优先级老年代 Region</li>
+</ul>
+<blockquote>
+<p>这不代表 G1 就不进行 Full GC，当 Mixed GC 无法更上内存分配的速度时将触发 Full GC。使用了 G1 的 System.gc() 默认是 Full GC。</p>
+<p>此处强烈推荐关注 RednaxelaFX 的博客，博主对 JVM 的理解非常深入，在博客中介绍了大量实现细节，链接放在参考资料。</p>
+</blockquote>
+<p>限于篇幅，G1 的调优相关可以阅读 <a target="_blank" rel="noopener" href="https://www.oracle.com/technical-resources/articles/java/g1gc.html">G1 Tuning</a>。</p>
+<h3 id="3-6-ZGC"><a href="#3-6-ZGC" class="headerlink" title="3.6 ZGC"></a>3.6 ZGC</h3><h4 id="3-6-1-介绍"><a href="#3-6-1-介绍" class="headerlink" title="3.6.1 介绍"></a>3.6.1 介绍</h4><p>Z Garbage Collector，ZGC 是最新的垃圾收集器，采用标记-整理算法，其目标是在对吞吐量影响不大的前提，对于任意堆大小实现停顿时间在 10 ms 以内。官方的定义为可伸缩的低延迟收集器。</p>
+<p><img src="zgc的目标.png" alt="alt"></p>
+<blockquote>
+<p>ZGC 刚发布时仅支持在 64 bit Linux 下使用，java 14 提供了对 Windows 和 macOS 的支持。下文将以 Linux 上的 ZGC 进行介绍。</p>
+</blockquote>
+<p>与 G1 类似，ZGC 将堆分为小型 Region（4MB）、中型 Region（32MB）、大型 Region。</p>
+<h4 id="3-6-2-染色指针和读屏障"><a href="#3-6-2-染色指针和读屏障" class="headerlink" title="3.6.2 染色指针和读屏障"></a>3.6.2 染色指针和读屏障</h4><p>ZGC 的关键在于虽然使用了标记-复制算法，但是移动对象的过程不需要 STW，即并发转移。</p>
+<p>ZGC 通过着色指针和读屏障技术实现并发转移。并发转移过程中 GC 线程在转移对象的时候，应用线程也在不停地访问对象。假设对象发生转移，但对象地址未及时更新，那么应用线程可能访问到旧地址，从而造成错误。在 ZGC 中，应用线程访问对象将触发读屏障，如果对象被移动了，读屏障将会把读出来的指针更新到对象的新地址上。应用线程始终访问的都是对象的新地址，而不需要 STW 来让 GC 和应用之间同步。</p>
+<h5 id="染色指针"><a href="#染色指针" class="headerlink" title="染色指针"></a>染色指针</h5><p>ZGC 的一大特点是使用了染色指针，相比于 G1 使用额外的空间记录三色标记，ZGC 直接将其记录在堆中对象的指针上。Linux 中 64 bit 的指针只使用了低 46 位，而 ZGC 将 46 位中的高 4 位用于标记，可见 ZGC 只能够管理 4 TB 堆空间，其中高 4 位的使用如下图所示。</p>
+<p><img src="染色指针.png" alt="alt"></p>
+<p>由上面分布可知，虚拟地址 [0，4TB）、[4，8TB）、[8，12TB）、[16，20TB）分别对应 Java 程序的虚拟地址、Marked0、Marked1、Remapped 视图。当程序对象时，在堆中申请一个虚拟地址，该地址不会映射到物理地址，而是为该对象在 Marked0、Marked1、Remapped 分别申请一个虚拟地址，并且映射到同一块内存，效果如下图所示。三个视图的切换在下文介绍。</p>
+<p><img src="内存映射.png" alt="alt"></p>
+<h5 id="读屏障"><a href="#读屏障" class="headerlink" title="读屏障"></a>读屏障</h5><p>读屏障是JVM向应用代码插入一小段代码的技术。当应用线程从堆中读取对象引用时，就会执行这段代码。</p>
+<p>读屏障用于在对象标记和移动对象过程中，用于确定对象的引用地址是否满足条件，并作出相应动作。</p>
+<p><img src="读屏障.png" alt="alt"></p>
+<h4 id="3-6-3-地址视图切换"><a href="#3-6-3-地址视图切换" class="headerlink" title="3.6.3 地址视图切换"></a>3.6.3 地址视图切换</h4><p>ZGC 的回收周期如下图所示，其中只有 初始阶段、再标记、初始转移是 STW 的。</p>
+<p><img src="zgc周期.png" alt="alt"></p>
+<p>在一个周期中的地址视图切换（更新指针）过程如下：</p>
+<ul>
+<li>初始化：整个地址空间被设置为 Remapped，满足 GC 条件后进入标记阶段；</li>
+<li>并发标记：如果对象被标记线程或者用户线程访问过（即被引用），则从 Remapped 改为 Marked0。标记结束后，如果对象地址是 Marked0 视图，则该对象存活，为 Remapped 则该对象是不活跃的，内存可以被回收；</li>
+<li>并发转移：标记结束后就进入转移阶段，此阶段如果对象被转移，则从 Marked0 改为Remapped。</li>
+</ul>
+<p>上述过程仿佛只用到了 Marked0，那么 Marked1 在何处使用呢？Marked0 和 Marked1 主要用于区分前一次标记和当前标记，第二次进入并发标记阶段后，地址视图将改为 Marked1。对象 0 所在的页面要被回收，需要转移，对象 2 所在的页面不用被回收，不需要转移。对象 0 转移过后它的视图改为 Remapped，对象 2 仍为 Marked0。那么下一次垃圾回收标记阶段开始的时候，存在两种地址视图，Remapped 和 Marked0，如果本次标记仍然使用 Marked0 这个地址视图，那么就不能区分出对象是活跃的，还是上一次标记过的。所以新标记阶段使用了另外一个地址视图 Marked1，标记结束后所有活跃对象的地址视图都为 Marked1。</p>
+<blockquote>
+<p>具体算法实现可见 《新一代垃圾回收器ZGC设计与实现》第 4 章。</p>
+</blockquote>
+<p><img src="视图转变.png" alt="alt"></p>
+<p>此时三个视图代表的含义为：</p>
+<ul>
+<li>Marked1：本次 GC 识别的活跃对象。</li>
+<li>Marked0：前一次垃圾回收的标记阶段被标记过的活跃对象，对象在转移阶段未被转移，但是在本次垃圾回收中被识别为不活跃对象。</li>
+<li>Remapped：前一次垃圾回收的转移阶段发生转移的对象或者是被应用程序线程访问的对象，但是在本次垃圾回收中被识别为不活跃对象。</li>
+</ul>
+<h2 id="4-总结图"><a href="#4-总结图" class="headerlink" title="4. 总结图"></a>4. 总结图</h2><p><img src="总结.png" alt="alt"></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497/">深入理解Java虚拟机</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26821357/">垃圾回收的算法与实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.zhihu.com/question/41922036">Major GC和Full GC的区别是什么？ RednaxelaFX的回答</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.iteye.com/blog/rednaxelafx-362738">RednaxelaFX的博客</a></li>
+<li><a target="_blank" rel="noopener" href="https://hllvm-group.iteye.com/group/topic/44381#post-272188">G1 GC的讨论</a></li>
+<li><a target="_blank" rel="noopener" href="https://openjdk.java.net/jeps/365">JEP 365</a></li>
+<li><a target="_blank" rel="noopener" href="https://tech.meituan.com/2020/08/06/new-zgc-practice-in-meituan.html">美团团队 新一代垃圾回收器ZGC的探索与实践</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34812818/">新一代垃圾回收器ZGC设计与实现</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.youtube.com/watch?v=88E86quLmQA&amp;t=1663s">ZGC: The Next Generation Low-Latency Garbage Collector</a></li>
 </ul>
 
   </div>
@@ -248,7 +370,7 @@
     </div>
 
     <div id="toc-footer" style="display: none">
-      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.</span> <span class="toc-text">1. 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-GC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 GC介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.2.1 引用计数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2.2 可达性分析</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">2. 垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 分代收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%AF%E8%AF%AD%E5%AE%9A%E4%B9%89"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 术语定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 标记-清除算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 标记-复制算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 标记-整理算法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">3. 垃圾收集器</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">4.</span> <span class="toc-text">参考资料</span></a></li></ol>
+      <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.</span> <span class="toc-text">1. 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-GC%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 GC介绍</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E5%9E%83%E5%9C%BE%E8%AF%86%E5%88%AB"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 垃圾识别</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-1-%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0"><span class="toc-number">1.2.1.</span> <span class="toc-text">1.2.1 引用计数</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#1-2-2-%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">1.2.2.</span> <span class="toc-text">1.2.2 可达性分析</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">介绍</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E4%B8%89%E8%89%B2%E6%A0%87%E8%AE%B0"><span class="toc-number">1.2.2.2.</span> <span class="toc-text">三色标记</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">2. 垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 分代收集</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%9C%AF%E8%AF%AD%E5%AE%9A%E4%B9%89"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 术语定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 标记-清除算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%A0%87%E8%AE%B0-%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 标记-复制算法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-5-%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95"><span class="toc-number">2.5.</span> <span class="toc-text">2.5 标记-整理算法</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">3.</span> <span class="toc-text">3. 垃圾收集器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-Serial-%E5%92%8C-Serial-Old"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 Serial 和 Serial Old</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-ParNew"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 ParNew</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-Parallel-Scavenge-%E5%92%8C-Paralllel-Old"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 Parallel Scavenge 和 Paralllel Old</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-4-CMS"><span class="toc-number">3.4.</span> <span class="toc-text">3.4 CMS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-5-G1"><span class="toc-number">3.5.</span> <span class="toc-text">3.5 G1</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-6-ZGC"><span class="toc-number">3.6.</span> <span class="toc-text">3.6 ZGC</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">3.6.1.</span> <span class="toc-text">3.6.1 介绍</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-2-%E6%9F%93%E8%89%B2%E6%8C%87%E9%92%88%E5%92%8C%E8%AF%BB%E5%B1%8F%E9%9A%9C"><span class="toc-number">3.6.2.</span> <span class="toc-text">3.6.2 染色指针和读屏障</span></a><ol class="toc-child"><li class="toc-item toc-level-5"><a class="toc-link" href="#%E6%9F%93%E8%89%B2%E6%8C%87%E9%92%88"><span class="toc-number">3.6.2.1.</span> <span class="toc-text">染色指针</span></a></li><li class="toc-item toc-level-5"><a class="toc-link" href="#%E8%AF%BB%E5%B1%8F%E9%9A%9C"><span class="toc-number">3.6.2.2.</span> <span class="toc-text">读屏障</span></a></li></ol></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-6-3-%E5%9C%B0%E5%9D%80%E8%A7%86%E5%9B%BE%E5%88%87%E6%8D%A2"><span class="toc-number">3.6.3.</span> <span class="toc-text">3.6.3 地址视图切换</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93%E5%9B%BE"><span class="toc-number">4.</span> <span class="toc-text">4. 总结图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">参考资料</span></a></li></ol>
     </div>
 
     <div id="share-footer" style="display: none">
