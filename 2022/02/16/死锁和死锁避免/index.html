@@ -1,0 +1,221 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>死锁和处理死锁 | 面向money编程</title><meta name="keywords" content="操作系统"><meta name="author" content="StrokeBun"><meta name="copyright" content="StrokeBun"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 死锁1.1 定义死锁的定义是：如果一个进程&#x2F;线程集合中的每个进程&#x2F;线程都在等待只能由该集合中其他进程&#x2F;线程才能引发的事件，那么该集合是死锁的。 在大多数情况下，这个事件是释放占用的资源，换句话说，死锁就是进程&#x2F;线程集合中的每个进程&#x2F;线程都在等待被占用的资源，都不能被唤醒运行。 很容易用 java 实现死锁： 123456789101112131415161718192021222324252">
+<meta property="og:type" content="article">
+<meta property="og:title" content="死锁和处理死锁">
+<meta property="og:url" content="https://strokebun.github.io/2022/02/16/%E6%AD%BB%E9%94%81%E5%92%8C%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D/index.html">
+<meta property="og:site_name" content="面向money编程">
+<meta property="og:description" content="1. 死锁1.1 定义死锁的定义是：如果一个进程&#x2F;线程集合中的每个进程&#x2F;线程都在等待只能由该集合中其他进程&#x2F;线程才能引发的事件，那么该集合是死锁的。 在大多数情况下，这个事件是释放占用的资源，换句话说，死锁就是进程&#x2F;线程集合中的每个进程&#x2F;线程都在等待被占用的资源，都不能被唤醒运行。 很容易用 java 实现死锁： 123456789101112131415161718192021222324252">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+<meta property="article:published_time" content="2022-02-16T10:21:04.000Z">
+<meta property="article:modified_time" content="2022-02-16T12:22:09.776Z">
+<meta property="article:author" content="StrokeBun">
+<meta property="article:tag" content="操作系统">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://strokebun.github.io/2022/02/16/%E6%AD%BB%E9%94%81%E5%92%8C%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '死锁和处理死锁',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-16 20:22:09'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">面向money编程</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">死锁和处理死锁</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-16T10:21:04.000Z" title="发表于 2022-02-16 18:21:04">2022-02-16</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-16T12:22:09.776Z" title="更新于 2022-02-16 20:22:09">2022-02-16</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="死锁和处理死锁"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-死锁"><a href="#1-死锁" class="headerlink" title="1. 死锁"></a>1. 死锁</h2><h3 id="1-1-定义"><a href="#1-1-定义" class="headerlink" title="1.1 定义"></a>1.1 定义</h3><p>死锁的定义是：如果一个进程/线程集合中的每个进程/线程都在等待只能由该集合中其他进程/线程才能引发的事件，那么该集合是死锁的。</p>
+<p>在大多数情况下，这个事件是释放占用的资源，换句话说，死锁就是进程/线程集合中的每个进程/线程都在等待被占用的资源，都不能被唤醒运行。</p>
+<p>很容易用 java 实现死锁：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">DeadLock</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Object resourceA = <span class="keyword">new</span> Object();</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Object resourceB = <span class="keyword">new</span> Object();</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        Thread threadA = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (resourceA) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;线程A获得资源A, 等待资源B&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">synchronized</span> (resourceB) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;线程A获得资源B&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        Thread threadB = <span class="keyword">new</span> Thread(() -&gt; &#123;</span><br><span class="line">            <span class="keyword">synchronized</span> (resourceB) &#123;</span><br><span class="line">                System.out.println(<span class="string">&quot;线程B获得资源B, 等待资源A&quot;</span>);</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    Thread.sleep(<span class="number">1000</span>);</span><br><span class="line">                &#125; <span class="keyword">catch</span> (InterruptedException e) &#123;</span><br><span class="line">                    e.printStackTrace();</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">synchronized</span> (resourceA) &#123;</span><br><span class="line">                    System.out.println(<span class="string">&quot;线程B获得资源A&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line"></span><br><span class="line">        threadA.start();</span><br><span class="line">        threadB.start();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 运行结果</span></span><br><span class="line">线程A获得资源A, 等待资源B</span><br><span class="line">线程B获得资源B, 等待资源A</span><br></pre></td></tr></table></figure>
+<h3 id="1-2-死锁条件"><a href="#1-2-死锁条件" class="headerlink" title="1.2 死锁条件"></a>1.2 死锁条件</h3><p>计算机科学家们总结了死锁的 4 个必要条件：</p>
+<ul>
+<li>互斥条件：资源只能被分配给一个进程/线程；</li>
+<li>占用和等待：已经得到某个资源后，该进程/线程可以再请求其他资源；</li>
+<li>不可抢占：资源只能自愿释放；</li>
+<li>环路等待：系统中有两个或两个以上的进程/线程组成环路，该环路上的每个进程/线程都在等待下一个进程/线程占用的资源。</li>
+</ul>
+<p><img src="互斥条件.png" alt="alt"></p>
+<p><img src="环路等待.png" alt="alt"></p>
+<h2 id="2-解决死锁"><a href="#2-解决死锁" class="headerlink" title="2. 解决死锁"></a>2. 解决死锁</h2><p>对于死锁，通常有 4 种处理策略：</p>
+<ul>
+<li>忽略</li>
+<li>检测并恢复</li>
+<li>死锁避免</li>
+<li>死锁预防</li>
+</ul>
+<h3 id="2-1-忽略"><a href="#2-1-忽略" class="headerlink" title="2.1 忽略"></a>2.1 忽略</h3><p>最简单的解决方案是鸵鸟算法，把头埋到沙子里，假装根本没有问题发生，即忽略死锁问题。</p>
+<p>对于数学家而言，这种方案往往无法接受，但对于工程师而言，如果死锁出现的概率很低，或者很长时间才会出现一次，并且能用重启的方式解决该问题， 那么完全可以忽略不管。</p>
+<blockquote>
+<p>实际上，由于忽略死锁的代价最小，虽然对解决死锁问题没有任何帮助，但却是最广泛使用的手段。通用操作系统例如 Windows 和 Linux 都忽略了死锁。</p>
+</blockquote>
+<h3 id="2-2-检测和恢复"><a href="#2-2-检测和恢复" class="headerlink" title="2.2 检测和恢复"></a>2.2 检测和恢复</h3><p>死锁检测和恢复并不阻止死锁的发生，而是当检测到死锁发生后，采取措施进行恢复。</p>
+<h4 id="2-2-1-死锁检测"><a href="#2-2-1-死锁检测" class="headerlink" title="2.2.1 死锁检测"></a>2.2.1 死锁检测</h4><p>假设每个类型只有一个资源，那么我们就可以构造一个资源分配图，例如 A 进程持有 R 资源，且需要 S 资源，那么图中便有 R -&gt; A 和 A-&gt; S 的路径，那么死锁检测便转化为了判断图中是否存在环，可以采用深度优先搜索、拓扑排序等算法进行判断。</p>
+<p><img src="资源图.png" alt="alt"></p>
+<p>图 (a) 即为系统中的资源分配图，而图 (b) 展示了图中存在的环，此时系统发生了死锁。</p>
+<blockquote>
+<p>对于多种相同资源的死锁检测，需要基于矩阵和向量判断，感兴趣的读者可以阅读《现代操作系统》6.4.2 小节。</p>
+</blockquote>
+<p>那么何时检测死锁呢？一种方案是每次资源分配就进行检测，优点是检测及时，但显然会极大增加资源分配的时间；另一种方案是固定时间间隔或者等 CPU 的使用率降到一定阈值进行检测。</p>
+<h4 id="2-2-2-死锁恢复"><a href="#2-2-2-死锁恢复" class="headerlink" title="2.2.2 死锁恢复"></a>2.2.2 死锁恢复</h4><p>死锁恢复通常有两个手段：</p>
+<ul>
+<li>杀死环中的进程：如果幸运的话，杀死环中的一个进程，其他进程就可以运行了。如果行不通的话，则继续杀死进程直到死锁被打破；</li>
+<li>回滚：周期性的设置检查点，在检查点中保存进程的状态，包括资源状态和资源分配情况。当发生死锁时，恢复到上一个检查点运行，遗憾的是，这个检查点之后的工作将全部失去。</li>
+</ul>
+<h3 id="2-3-死锁避免"><a href="#2-3-死锁避免" class="headerlink" title="2.3 死锁避免"></a>2.3 死锁避免</h3><p>死锁避免的常用算法是银行家算法，由 Dijkstra 提出。该模型基于一个小镇的银行家，向客户分别承诺了一定贷款额度，当每个客户发起贷款请求时，需要判断该请求是否会进入不安全状态，如果是便拒绝该请求。那么什么是安全状态呢？假设 4 个客户 A、B、C、D，分别的贷款额度是 6、5、4、7，银行家只保留 10 的资源，针对下图三种情况进行分析：</p>
+<p><img src="安全状态.png" alt="alt"></p>
+<ul>
+<li>(a) 中所有贷款都未被分配，是安全状态；</li>
+<li>(b) 中银行家可以拖延 C 以外的贷款请求，让 C 先完成，等到 C 还贷后得到 4 个单位资源，可以继续给 B 或者 D 分配所需的贷款，因此该状态是安全的；</li>
+<li>(c) 中银行家无法满足任何一个客户的最大贷款，因此该状态是不安全的。</li>
+</ul>
+<p>将上述的银行家比作操作系统，客户比作进程，贷款比作资源，那么银行家算法就可以避免进程的死锁。</p>
+<blockquote>
+<p>上述举例针对的是单个资源的情况，银行家算法可以推广处理多个资源，在 《现代操作系统》6.5.4 小节进行了介绍。</p>
+</blockquote>
+<h3 id="2-4-死锁预防"><a href="#2-4-死锁预防" class="headerlink" title="2.4 死锁预防"></a>2.4 死锁预防</h3><p>死锁预防思想是破坏死锁的 4 个必要条件中的任意一个。</p>
+<h4 id="破坏互斥条件"><a href="#破坏互斥条件" class="headerlink" title="破坏互斥条件"></a>破坏互斥条件</h4><p>如果资源不被一个进程独占，那么死锁便不会发生，但锁之类的资源从语意上就是互斥的，对于这类资源这个方案无法执行。</p>
+<h4 id="破坏占用和等待"><a href="#破坏占用和等待" class="headerlink" title="破坏占用和等待"></a>破坏占用和等待</h4><p>只要禁止持有资源的进程进行等待便可以消除死锁，一个方法是规定所有进程再执行前获取所有的资源，但这个方案有以下问题：</p>
+<ul>
+<li>很多进程直到运行时才知道需要的资源，无法提前分配；</li>
+<li>大量资源被一个进程持有但不使用，造成浪费。</li>
+</ul>
+<h4 id="破坏不可抢占"><a href="#破坏不可抢占" class="headerlink" title="破坏不可抢占"></a>破坏不可抢占</h4><p>大量的资源被设计为不可抢占的，无法进行破坏。</p>
+<h4 id="破坏环路等待"><a href="#破坏环路等待" class="headerlink" title="破坏环路等待"></a>破坏环路等待</h4><p>对资源类型进行排序，资源申请必须按序进行，不会出现环路等待，缺点是仍然造成资源浪费。</p>
+<h2 id="3-其他问题"><a href="#3-其他问题" class="headerlink" title="3. 其他问题"></a>3. 其他问题</h2><h3 id="3-1-两阶段加锁"><a href="#3-1-两阶段加锁" class="headerlink" title="3.1 两阶段加锁"></a>3.1 两阶段加锁</h3><p>在数据库中，一个经常的操作是请求锁住一些记录，然后更新所有锁住的记录，当同时有多个进程运行时，就有死锁的危险。</p>
+<p>常用的方法是两阶段加锁，第一阶段对所需的记录进行加锁，加锁成功才进入第二阶段更新，更新完成后释放所有的锁。</p>
+<blockquote>
+<p>例如 MySQL InnoDB 中的行锁，在事务中第一次更改数据时进行加锁，等到事务结束才会释放所有的锁。</p>
+</blockquote>
+<h3 id="3-2-通信死锁"><a href="#3-2-通信死锁" class="headerlink" title="3.2 通信死锁"></a>3.2 通信死锁</h3><p>上述的死锁都是针对资源而言，但资源死锁只是最普遍的一种，但不是唯一的一种。另一种死锁发生在网络中，一个普遍情形是进程 A 向进程 B 中发送数据，然后阻塞直到 B 回复，假设消息丢失，A 将阻塞等待 B 的回复，B 将阻塞等待 A 的数据，于是发生了死锁。</p>
+<p>TCP 通过超时重传解决了上述问题。</p>
+<h3 id="3-3-活锁"><a href="#3-3-活锁" class="headerlink" title="3.3 活锁"></a>3.3 活锁</h3><p>在某些场景下，进程通过轮询获取资源，获取失败不会挂起，而是重新尝试。假设进程 A 和进程 B 都需要两个资源 1 和 2，并且都是通过轮询去获取资源，如果 A 先运行获得资源 1，然后 B 获得资源 2，并通过轮询去获取对方的资源。</p>
+<p>结果是两个进程都不会阻塞，但是会不断消耗 CPU 分给它们的时间片，但是没有任何进展，从现象上看好像死锁发生了。这个现象被称为活锁。</p>
+<h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h2><p>上面介绍了死锁的产生条件和解决手段，不幸的是，解决死锁更多是学术上的研究，这些解决手段或多或少都存在一定问题，在实际中很少使用。实际开发还是需要程序员精心设计程序，减少死锁的发生，或在死锁发生时运用工具分析解决，在 Java 中可以使用 jconsole 或者 VisualVM 进行排查。</p>
+<p><img src="总结.png" alt="alt"></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Deadlock">Deadlock wikipedia</a></li>
+<li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/27096665/">现代操作系统</a></li>
+<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/361475700">小林coding 面试官：什么是死锁？</a></li>
+<li><a target="_blank" rel="noopener" href="https://www.bilibili.com/video/BV1iW411Y73K?p=35">哈尔滨工业大学 操作系统</a></li>
+<li><a target="_blank" rel="noopener" href="https://time.geekbang.org/column/article/70215">MySQL实战45讲 行锁功过</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">StrokeBun</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://strokebun.github.io/2022/02/16/%E6%AD%BB%E9%94%81%E5%92%8C%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D/">https://strokebun.github.io/2022/02/16/%E6%AD%BB%E9%94%81%E5%92%8C%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://strokebun.github.io" target="_blank">面向money编程</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">操作系统</a></div><div class="post_share"><div class="social-share" data-image="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(6)%20%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%9E%8B/"><img class="next-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">Java并发编程(6) 生产者消费者模型</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">StrokeBun</div><div class="author-info__description">Money Oriented Programming</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">32</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/strokebun"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E6%AD%BB%E9%94%81"><span class="toc-number">1.</span> <span class="toc-text">1. 死锁</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-1-%E5%AE%9A%E4%B9%89"><span class="toc-number">1.1.</span> <span class="toc-text">1.1 定义</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-2-%E6%AD%BB%E9%94%81%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.2.</span> <span class="toc-text">1.2 死锁条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E8%A7%A3%E5%86%B3%E6%AD%BB%E9%94%81"><span class="toc-number">2.</span> <span class="toc-text">2. 解决死锁</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E5%BF%BD%E7%95%A5"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 忽略</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-%E6%A3%80%E6%B5%8B%E5%92%8C%E6%81%A2%E5%A4%8D"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 检测和恢复</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-1-%E6%AD%BB%E9%94%81%E6%A3%80%E6%B5%8B"><span class="toc-number">2.2.1.</span> <span class="toc-text">2.2.1 死锁检测</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-2-%E6%AD%BB%E9%94%81%E6%81%A2%E5%A4%8D"><span class="toc-number">2.2.2.</span> <span class="toc-text">2.2.2 死锁恢复</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-3-%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D"><span class="toc-number">2.3.</span> <span class="toc-text">2.3 死锁避免</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-4-%E6%AD%BB%E9%94%81%E9%A2%84%E9%98%B2"><span class="toc-number">2.4.</span> <span class="toc-text">2.4 死锁预防</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A0%B4%E5%9D%8F%E4%BA%92%E6%96%A5%E6%9D%A1%E4%BB%B6"><span class="toc-number">2.4.1.</span> <span class="toc-text">破坏互斥条件</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A0%B4%E5%9D%8F%E5%8D%A0%E7%94%A8%E5%92%8C%E7%AD%89%E5%BE%85"><span class="toc-number">2.4.2.</span> <span class="toc-text">破坏占用和等待</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A0%B4%E5%9D%8F%E4%B8%8D%E5%8F%AF%E6%8A%A2%E5%8D%A0"><span class="toc-number">2.4.3.</span> <span class="toc-text">破坏不可抢占</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%A0%B4%E5%9D%8F%E7%8E%AF%E8%B7%AF%E7%AD%89%E5%BE%85"><span class="toc-number">2.4.4.</span> <span class="toc-text">破坏环路等待</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%85%B6%E4%BB%96%E9%97%AE%E9%A2%98"><span class="toc-number">3.</span> <span class="toc-text">3. 其他问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E4%B8%A4%E9%98%B6%E6%AE%B5%E5%8A%A0%E9%94%81"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 两阶段加锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E9%80%9A%E4%BF%A1%E6%AD%BB%E9%94%81"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 通信死锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%B4%BB%E9%94%81"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 活锁</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%80%BB%E7%BB%93"><span class="toc-number">4.</span> <span class="toc-text">4. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">5.</span> <span class="toc-text">参考资料</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/16/%E6%AD%BB%E9%94%81%E5%92%8C%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D/" title="死锁和处理死锁">死锁和处理死锁</a><time datetime="2022-02-16T10:21:04.000Z" title="发表于 2022-02-16 18:21:04">2022-02-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(6)%20%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%9E%8B/" title="Java并发编程(6) 生产者消费者模型">Java并发编程(6) 生产者消费者模型</a><time datetime="2022-02-16T07:24:40.000Z" title="发表于 2022-02-16 15:24:40">2022-02-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/16/netty%E4%BB%8B%E7%BB%8D/" title="netty介绍">netty介绍</a><time datetime="2022-02-16T01:29:04.000Z" title="发表于 2022-02-16 09:29:04">2022-02-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/15/Java-NIO/" title="Java NIO">Java NIO</a><time datetime="2022-02-15T11:03:18.000Z" title="发表于 2022-02-15 19:03:18">2022-02-15</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/15/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/" title="IO多路复用">IO多路复用</a><time datetime="2022-02-15T07:26:37.000Z" title="发表于 2022-02-15 15:26:37">2022-02-15</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By StrokeBun</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
