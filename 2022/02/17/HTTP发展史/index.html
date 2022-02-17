@@ -1,0 +1,197 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>HTTP发展史 | 面向money编程</title><meta name="keywords" content="计算机网络"><meta name="author" content="StrokeBun"><meta name="copyright" content="StrokeBun"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="HTTP 基于 TCP 协议，默认端口是 80，HTTP 是 Web 世界中的基础协议，是现如今 Web 开发的必备知识，它也经历了多个版本的发展。 本文将介绍 HTTP 协议的发展历史。 1. HTTP&#x2F;0.9HTTP&#x2F;0.9 在 1991 年发布，协议内容非常简单，没有请求头，只支持 GET 命令，然后没了。 2. HTTP&#x2F;1.01996 年，HTTP&#x2F;1.0 发布，拓展了不少功能：  除了">
+<meta property="og:type" content="article">
+<meta property="og:title" content="HTTP发展史">
+<meta property="og:url" content="https://strokebun.github.io/2022/02/17/HTTP%E5%8F%91%E5%B1%95%E5%8F%B2/index.html">
+<meta property="og:site_name" content="面向money编程">
+<meta property="og:description" content="HTTP 基于 TCP 协议，默认端口是 80，HTTP 是 Web 世界中的基础协议，是现如今 Web 开发的必备知识，它也经历了多个版本的发展。 本文将介绍 HTTP 协议的发展历史。 1. HTTP&#x2F;0.9HTTP&#x2F;0.9 在 1991 年发布，协议内容非常简单，没有请求头，只支持 GET 命令，然后没了。 2. HTTP&#x2F;1.01996 年，HTTP&#x2F;1.0 发布，拓展了不少功能：  除了">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
+<meta property="article:published_time" content="2022-02-17T07:26:47.000Z">
+<meta property="article:modified_time" content="2022-02-17T09:06:04.230Z">
+<meta property="article:author" content="StrokeBun">
+<meta property="article:tag" content="计算机网络">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://strokebun.github.io/2022/02/17/HTTP%E5%8F%91%E5%B1%95%E5%8F%B2/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'HTTP发展史',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-17 17:06:04'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">面向money编程</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">HTTP发展史</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-17T07:26:47.000Z" title="发表于 2022-02-17 15:26:47">2022-02-17</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-17T09:06:04.230Z" title="更新于 2022-02-17 17:06:04">2022-02-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="HTTP发展史"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>HTTP 基于 TCP 协议，默认端口是 80，HTTP 是 Web 世界中的基础协议，是现如今 Web 开发的必备知识，它也经历了多个版本的发展。</p>
+<p>本文将介绍 HTTP 协议的发展历史。</p>
+<h2 id="1-HTTP-0-9"><a href="#1-HTTP-0-9" class="headerlink" title="1. HTTP/0.9"></a>1. HTTP/0.9</h2><p>HTTP/0.9 在 1991 年发布，协议内容非常简单，没有请求头，只支持 <code>GET</code> 命令，然后没了。</p>
+<h2 id="2-HTTP-1-0"><a href="#2-HTTP-1-0" class="headerlink" title="2. HTTP/1.0"></a>2. HTTP/1.0</h2><p>1996 年，HTTP/1.0 发布，拓展了不少功能：</p>
+<ul>
+<li>除了 <code>GET</code> 命令外，引入了 <code>POST</code> 和 <code>HEAD</code> 命令；</li>
+<li>添加了 HTTP header，请求和响应都有 header 了，并且在请求 header 中指明了 http 版本；</li>
+<li>添加了状态码，例如 200，404 等；</li>
+<li>可以传输图像、视频等，使用 <code>Content-Type</code> 指明文件类型。</li>
+</ul>
+<p>HTTP/1.0 极大拓展了 Web 世界的丰富程度，但也有一个主要缺点：每个 TCP 连接都只能发送一个请求。TCP 的连接需要三次握手，每次 HTTP 请求都得建立一个连接，速度较慢。除此之外，请求是串行的，每个请求必须等待上一个请求完成才可以发送。</p>
+<p>为了解决 HTTP 短连接的问题，当时有些浏览器在请求时，会添加一个非标准的字段：</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attribute">Connection</span><span class="punctuation">: </span>keep-alive</span><br></pre></td></tr></table></figure>
+<p>这个字段要求服务器不关闭 TCP 连接，以便请求复用，服务端同样会在响应中添加这个字段。</p>
+<h2 id="3-HTTP-1-1"><a href="#3-HTTP-1-1" class="headerlink" title="3. HTTP/1.1"></a>3. HTTP/1.1</h2><p>1997 年，HTTP/1.1 发布，主要解决 HTTP/1.0 的网络性能问题，并增加一些新特性：</p>
+<ul>
+<li>默认采用了长连接，减少 TCP 三次握手的开销。当需要关闭时，添加字段 <code>Connection: close</code>；</li>
+<li>引入了管道（pipeling）机制，在同一个 TCP 连接里，客户端可以发送多个请求。例如需要发送 A 和 B 两个请求，HTTP/1.0 中会先发送 A 请求，收到回应之后再发送 B 请求。在 HTTP/1.1 中，允许客户端同时发出 A 和 B 请求，但服务端仍根据请求顺序进行处理；</li>
+<li>增加了 <code>PUT</code>、<code>PATCH</code>、<code>OPTIONS</code>、<code>DELETE</code> 命令；</li>
+<li>添加了 <code>HOST</code> 字段，指定服务器的域名；</li>
+</ul>
+<p>虽然 HTTP/1.1 维持了长连接和引入了管道机制，提升了网络性能，但仍存在性能瓶颈：服务器按照请求的顺序进行响应的，处理完一个才会处理下一个，如果服务端响应慢，会导致客户端请求不到数据，这被称为队头阻塞问题。</p>
+<h2 id="4-HTTP-2"><a href="#4-HTTP-2" class="headerlink" title="4. HTTP/2"></a>4. HTTP/2</h2><p>Google 开源了自行研发的 SPDY 协议，主要解决 HTTP/1.1 的性能问题，在 SPDY 的基础上，HTTP/2 在 2015 年发布。</p>
+<p>HTTP/2 采用了 TLS，可以保证安全传输，除此之外，其主要特性有 多工、二进制协议、头部压缩、数据流和服务端推送。</p>
+<p><img src="http2.png" alt="alt"></p>
+<h4 id="多工"><a href="#多工" class="headerlink" title="多工"></a>多工</h4><p>在一个 TCP 连接里，客户端和服务端可以同时发送多个请求或回应，而且不用按照顺序一一对应，可以解决队头阻塞问题，这被称为多工，也称多路复用。</p>
+<p><img src="多工.png" alt="alt"></p>
+<h4 id="二进制协议"><a href="#二进制协议" class="headerlink" title="二进制协议"></a>二进制协议</h4><p>HTTP/1.1 的 header 是文本，body 可以是文本或者二进制，而 HTTP/2 是彻底的二进制协议，header 和 body 都为二进制，称为头信息帧和数据帧。</p>
+<p><img src="二进制协议.png" alt="alt"></p>
+<h4 id="头部压缩"><a href="#头部压缩" class="headerlink" title="头部压缩"></a>头部压缩</h4><p>如果发送多个请求，它们的头是一样或者类似的，协议会通过 HPACK 算法消除重复的部分。</p>
+<p>HPACK 算法的思想是在客户端和服务器维护一张头信息表，所有的字段都会存在这张表中，相同的字段在后续不发送完整信息，而是发送表中的索引。</p>
+<h4 id="数据流"><a href="#数据流" class="headerlink" title="数据流"></a>数据流</h4><p>由于采用了多工，同一个连接里面连续的数据包，可能属于不同的响应，需要对数据包进行标记和区分。</p>
+<p>HTTP/2 将每个请求或响应的所有数据包，称为一个数据流。每个数据流都有一个独一无二的编号，发送数据包时，必须携带数据流的编号。</p>
+<p><img src="数据流.png" alt="alt"></p>
+<h4 id="服务端推送"><a href="#服务端推送" class="headerlink" title="服务端推送"></a>服务端推送</h4><p>服务端推送允许服务端未经请求，主动向客户端发送数据。</p>
+<p>例如客户端请求 index.html，服务端在响应这个请求时，可以主动推送 main.js 文件到客户端的缓存，当客户端需要 main.js 时，从缓存中获取即可，不需要发送请求。</p>
+<h4 id="HTTP-2-的不足"><a href="#HTTP-2-的不足" class="headerlink" title="HTTP/2 的不足"></a>HTTP/2 的不足</h4><p>HTTP/2 为了解决队头阻塞问题，引入了多工，多个 HTTP 请求在复用一个 TCP 连接，而这些对于 TCP 而言是无感知的。由于 TCP 的重传机制，如果发生丢包，所有的 HTTP 请求都需要等待这个包被重传，即使这个包不属于我这个 HTTP 请求。</p>
+<h2 id="5-HTTP-3"><a href="#5-HTTP-3" class="headerlink" title="5. HTTP/3"></a>5. HTTP/3</h2><p>HTTP/2 的重传问题使用 TCP 是无解的，但是 UDP 可以，于是 HTTP/3 将底层的 TCP 协议改为基于 UDP 的 QUIC 协议。</p>
+<p>QUIC 是 Google 设计的基于 UDP 的可靠协议，拥有以下特点：</p>
+<ul>
+<li>无队头阻塞。QUIC 也采用了数据流，流之间相互独立，由于 UDP 没有重传机制，即使发送丢包，只会阻塞包对应的流；</li>
+<li>建立连接速度快。HTTPS 建立一个连接，需要 6 次交互，而 QUIC 将其合并到 3 次；</li>
+<li>连接迁移。QUIC 取消了（源地址，源端口，目标地址，目标端口）的四元组，而是采用 connection id 来标识一个连接，只要保留上下文，即使网络发生变化，也可以复用该连接。例如设备从 4G 切换到 WIFI，连接不会中断。</li>
+</ul>
+<p>HTTP/3 采用 QPACK 替换 HPACK 实现头部压缩，目前看来，HTTP/3 主要涉及底层协议改造，在业务逻辑层面并没有太大变化。但也因为改动了底层协议，HTTP/3 的普及还是一个较为长久的过程。</p>
+<h2 id="6-总结"><a href="#6-总结" class="headerlink" title="6. 总结"></a>6. 总结</h2><p><img src="总结.png" alt="alt"></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="http://www.ruanyifeng.com/blog/2016/08/http.html">HTTP协议入门</a></li>
+<li><a target="_blank" rel="noopener" href="https://coolshell.cn/articles/19840.html">HTTP的前世今生</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_36894974/article/details/120037166">再过5分钟，你就懂HTTP 2.0了</a></li>
+<li><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34827674/article/details/115188998">HTTP/3 强势来袭</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">StrokeBun</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://strokebun.github.io/2022/02/17/HTTP%E5%8F%91%E5%B1%95%E5%8F%B2/">https://strokebun.github.io/2022/02/17/HTTP%E5%8F%91%E5%B1%95%E5%8F%B2/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://strokebun.github.io" target="_blank">面向money编程</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E8%AE%A1%E7%AE%97%E6%9C%BA%E7%BD%91%E7%BB%9C/">计算机网络</a></div><div class="post_share"><div class="social-share" data-image="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/17/https%E7%9A%84%E5%8A%A0%E5%AF%86%E5%8E%9F%E7%90%86/"><img class="next-cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">HTTPS的加密原理</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/17/https%E7%9A%84%E5%8A%A0%E5%AF%86%E5%8E%9F%E7%90%86/" title="HTTPS的加密原理"><img class="cover" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-17</div><div class="title">HTTPS的加密原理</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">StrokeBun</div><div class="author-info__description">Money Oriented Programming</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/strokebun"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-HTTP-0-9"><span class="toc-number">1.</span> <span class="toc-text">1. HTTP&#x2F;0.9</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-HTTP-1-0"><span class="toc-number">2.</span> <span class="toc-text">2. HTTP&#x2F;1.0</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-HTTP-1-1"><span class="toc-number">3.</span> <span class="toc-text">3. HTTP&#x2F;1.1</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-HTTP-2"><span class="toc-number">4.</span> <span class="toc-text">4. HTTP&#x2F;2</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%9A%E5%B7%A5"><span class="toc-number">4.0.1.</span> <span class="toc-text">多工</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%8D%8F%E8%AE%AE"><span class="toc-number">4.0.2.</span> <span class="toc-text">二进制协议</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%A4%B4%E9%83%A8%E5%8E%8B%E7%BC%A9"><span class="toc-number">4.0.3.</span> <span class="toc-text">头部压缩</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E6%B5%81"><span class="toc-number">4.0.4.</span> <span class="toc-text">数据流</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9C%8D%E5%8A%A1%E7%AB%AF%E6%8E%A8%E9%80%81"><span class="toc-number">4.0.5.</span> <span class="toc-text">服务端推送</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#HTTP-2-%E7%9A%84%E4%B8%8D%E8%B6%B3"><span class="toc-number">4.0.6.</span> <span class="toc-text">HTTP&#x2F;2 的不足</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-HTTP-3"><span class="toc-number">5.</span> <span class="toc-text">5. HTTP&#x2F;3</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#6-%E6%80%BB%E7%BB%93"><span class="toc-number">6.</span> <span class="toc-text">6. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">7.</span> <span class="toc-text">参考资料</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/17/HTTP%E5%8F%91%E5%B1%95%E5%8F%B2/" title="HTTP发展史">HTTP发展史</a><time datetime="2022-02-17T07:26:47.000Z" title="发表于 2022-02-17 15:26:47">2022-02-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/17/https%E7%9A%84%E5%8A%A0%E5%AF%86%E5%8E%9F%E7%90%86/" title="HTTPS的加密原理">HTTPS的加密原理</a><time datetime="2022-02-17T01:21:32.000Z" title="发表于 2022-02-17 09:21:32">2022-02-17</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/16/%E6%AD%BB%E9%94%81%E5%92%8C%E6%AD%BB%E9%94%81%E9%81%BF%E5%85%8D/" title="死锁和处理死锁">死锁和处理死锁</a><time datetime="2022-02-16T10:21:04.000Z" title="发表于 2022-02-16 18:21:04">2022-02-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/16/Java%E5%B9%B6%E5%8F%91%E7%BC%96%E7%A8%8B(6)%20%E7%94%9F%E4%BA%A7%E8%80%85%E6%B6%88%E8%B4%B9%E8%80%85%E6%A8%A1%E5%9E%8B/" title="Java并发编程(6) 生产者消费者模型">Java并发编程(6) 生产者消费者模型</a><time datetime="2022-02-16T07:24:40.000Z" title="发表于 2022-02-16 15:24:40">2022-02-16</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/16/netty%E4%BB%8B%E7%BB%8D/" title="netty介绍">netty介绍</a><time datetime="2022-02-16T01:29:04.000Z" title="发表于 2022-02-16 09:29:04">2022-02-16</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By StrokeBun</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
