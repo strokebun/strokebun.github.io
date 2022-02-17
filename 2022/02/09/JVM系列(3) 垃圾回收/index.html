@@ -7,7 +7,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
 <meta property="article:published_time" content="2022-02-09T11:09:41.000Z">
-<meta property="article:modified_time" content="2022-02-15T01:45:38.687Z">
+<meta property="article:modified_time" content="2022-02-17T10:38:51.872Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary">
@@ -53,7 +53,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: true,
-  postUpdate: '2022-02-15 09:45:38'
+  postUpdate: '2022-02-17 18:38:51'
 }</script><noscript><style type="text/css">
   #nav {
     opacity: 1
@@ -142,7 +142,7 @@
       }
     }
     detectApple()
-    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">面向money编程</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM系列(3) 垃圾回收</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-09T11:09:41.000Z" title="发表于 2022-02-09 19:09:41">2022-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-15T01:45:38.687Z" title="更新于 2022-02-15 09:45:38">2022-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM系列(3) 垃圾回收"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-垃圾识别"><a href="#1-垃圾识别" class="headerlink" title="1. 垃圾识别"></a>1. 垃圾识别</h2><h3 id="1-1-GC介绍"><a href="#1-1-GC介绍" class="headerlink" title="1.1 GC介绍"></a>1.1 GC介绍</h3><p>在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露，如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃。另外，程序员可能会错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，往往会遇到令人头疼的段错误。以上问题出现的时间可能不一致，导致这类 BUG 难以定位。</p>
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">面向money编程</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM系列(3) 垃圾回收</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-09T11:09:41.000Z" title="发表于 2022-02-09 19:09:41">2022-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-17T10:38:51.872Z" title="更新于 2022-02-17 18:38:51">2022-02-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM系列(3) 垃圾回收"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-垃圾识别"><a href="#1-垃圾识别" class="headerlink" title="1. 垃圾识别"></a>1. 垃圾识别</h2><h3 id="1-1-GC介绍"><a href="#1-1-GC介绍" class="headerlink" title="1.1 GC介绍"></a>1.1 GC介绍</h3><p>在 C 语言中，程序员需要手动管理内存，使用 malloc 分配内存，当对象不再使用时，需要使用 free 回收内存。如果忘记调用，这块内存将一直占用无法被使用，导致内存泄露，如果放任内存泄露的程序运行，在某一刻内存将占满，程序崩溃。另外，程序员可能会错误释放使用中的内存空间，下一次程序使用此空间时将会发生故障，往往会遇到令人头疼的段错误。以上问题出现的时间可能不一致，导致这类 BUG 难以定位。</p>
 <p>为了摆脱手动管理内存的困境，Garbarge Collection，GC，垃圾回收机制应运而生。对象如果不再使用，其占用的内存将会自动被回收，后来出现的大部分语言，例如 Java、Go、C# 等都引入了垃圾回收机制。</p>
 <h3 id="1-2-垃圾识别"><a href="#1-2-垃圾识别" class="headerlink" title="1.2 垃圾识别"></a>1.2 垃圾识别</h3><p>在回收对象内存之前，需要先判断该对象是否存活，有两种经典的算法：</p>
 <ul>
@@ -176,7 +176,7 @@
 </ul>
 <p>GC 开始前所有对象都是白色，首先将 GCRoots 标记为灰色，利用广度优先搜索的思想，不断取出灰色对象 G，并将 G 引用的所有对象 S1、S2 都标记为灰色，最后将 G 标记为黑色。之后将不断重复上述过程，标记结束之后存活对象均为黑色，垃圾均为白色。</p>
 <p>三色标记过程可以与用户线程并发执行，但在标记过程中用户线程可能改变引用关系，导致将存活的对象标记为白色，程序发生错误，如下图所示。</p>
-<p><img src="漏标记.png" alt="alt"></p>
+<p><img src="漏标记.png" alt="漏标记问题"></p>
 <p>(a) 中 A 为黑色，B 为灰色，此时将要遍历 B 引用的对象，(b) (c) 中用户线程去掉了 B 到 C 的引用，增加了 A 到 C 的引用，此时 C 理应存活，但 A 已经遍历结束，已经没有引用链可以到达 C，C 被标记为白色，GC 过程中将被回收。</p>
 <p>科学家们证明了上述漏标出现需要同时满足两个条件：</p>
 <ul>
@@ -213,12 +213,12 @@
 <li>产生内存碎片</li>
 <li>与 copy on write 机制不兼容，需要引入其他机制弥补</li>
 </ul>
-<p><img src="标记清除.png" alt="alt"></p>
+<p><img src="标记清除.png" alt="标记清除算法"></p>
 <h3 id="2-4-标记-复制算法"><a href="#2-4-标记-复制算法" class="headerlink" title="2.4 标记-复制算法"></a>2.4 标记-复制算法</h3><p>标记-复制算法将内存分为相等的两块 T1 和 T2，每次只使用其中一块，发生 GC 时，将 T1 存活的对象复制到 T2，并回收 T1，交换 T1 和 T2 的角色。</p>
 <p>标记-复制算法解决了标记-清除算法面对大量可回收对象效率低下的问题，但是可用内存缩小了原来的一半，更容易发生 GC，故常用在新生代。</p>
-<p><img src="标记复制.png" alt="alt"></p>
+<p><img src="标记复制.png" alt="标记复制算法"></p>
 <h3 id="2-5-标记-整理算法"><a href="#2-5-标记-整理算法" class="headerlink" title="2.5 标记-整理算法"></a>2.5 标记-整理算法</h3><p>标记-整理算法的标记过程与标记-清除算法相同，但后续不是直接回收对象，而是让存活的对象往一端移动，并清理到边界以外的对象。</p>
-<p><img src="标记整理.png" alt="alt"></p>
+<p><img src="标记整理.png" alt="标记整理算法"></p>
 <p>整理的过程需要 STW，如果内存中只有少量存活对象，那么标记-整理算法既高效又节约内存，常用在老年代。但如果存在大量存活对象，标记-整理算法将十分低效。</p>
 <h2 id="3-垃圾收集器"><a href="#3-垃圾收集器" class="headerlink" title="3. 垃圾收集器"></a>3. 垃圾收集器</h2><p>接下来将介绍 hotspot 中的垃圾收集器。</p>
 <h3 id="3-1-Serial-和-Serial-Old"><a href="#3-1-Serial-和-Serial-Old" class="headerlink" title="3.1 Serial 和 Serial Old"></a>3.1 Serial 和 Serial Old</h3><p>Serial 是新生代的收集器，使用标记-复制算法，只使用一个线程去完成 GC 工作，并且整个过程需要 STW。</p>
@@ -237,7 +237,7 @@
 <blockquote>
 <p>在上文收集算法中提出，老年代常使用的标记-整理算法需要 STW。CMS 的关注点是暂停时间，这是 CMS 虽然是老年代收集器，但使用标记-清除算法的原因。</p>
 </blockquote>
-<p><img src="cms.png" alt="alt"></p>
+<p><img src="cms.png" alt="CMS GC流程"></p>
 <p>虽然 CMS 带来了极低的暂停时间，但也存在以下问题：</p>
 <ul>
 <li>在 CPU 核心数较低时开销较大，CMS 的回收线程配置为 （处理器核心数量 +3）/4，在低配计算机上 GC 过程会影响用户体验；</li>
@@ -263,7 +263,7 @@
 <li>最终标记：根据原始快照重新标记防止误删，需要 STW</li>
 <li>筛选回收：更新 Region 的优先级，将待回收 Region 的存活对象复制到空 Region中，回收整个 Region，需要 STW</li>
 </ul>
-<p><img src="g1.png" alt="alt"></p>
+<p><img src="g1.png" alt="G1 GC流程"></p>
 <p>G1 有以下两种模式，并视情况切换：</p>
 <ul>
 <li>Young GC：回收区域为新生代的 Region，初始标记在这个过程执行</li>
@@ -275,7 +275,7 @@
 </blockquote>
 <p>限于篇幅，G1 的调优相关可以阅读 <a target="_blank" rel="noopener" href="https://www.oracle.com/technical-resources/articles/java/g1gc.html">G1 Tuning</a>。</p>
 <h3 id="3-6-ZGC"><a href="#3-6-ZGC" class="headerlink" title="3.6 ZGC"></a>3.6 ZGC</h3><h4 id="3-6-1-介绍"><a href="#3-6-1-介绍" class="headerlink" title="3.6.1 介绍"></a>3.6.1 介绍</h4><p>Z Garbage Collector，ZGC 是最新的垃圾收集器，采用标记-整理算法，其目标是在对吞吐量影响不大的前提，对于任意堆大小实现停顿时间在 10 ms 以内。官方的定义为可伸缩的低延迟收集器。</p>
-<p><img src="zgc的目标.png" alt="alt"></p>
+<p><img src="zgc的目标.png" alt="ZGC的目标"></p>
 <blockquote>
 <p>ZGC 刚发布时仅支持在 64 bit Linux 下使用，java 14 提供了对 Windows 和 macOS 的支持。下文将以 Linux 上的 ZGC 进行介绍。</p>
 </blockquote>
@@ -283,14 +283,14 @@
 <h4 id="3-6-2-染色指针和读屏障"><a href="#3-6-2-染色指针和读屏障" class="headerlink" title="3.6.2 染色指针和读屏障"></a>3.6.2 染色指针和读屏障</h4><p>ZGC 的关键在于虽然使用了标记-复制算法，但是移动对象的过程不需要 STW，即并发转移。</p>
 <p>ZGC 通过着色指针和读屏障技术实现并发转移。并发转移过程中 GC 线程在转移对象的时候，应用线程也在不停地访问对象。假设对象发生转移，但对象地址未及时更新，那么应用线程可能访问到旧地址，从而造成错误。在 ZGC 中，应用线程访问对象将触发读屏障，如果对象被移动了，读屏障将会把读出来的指针更新到对象的新地址上。应用线程始终访问的都是对象的新地址，而不需要 STW 来让 GC 和应用之间同步。</p>
 <h5 id="染色指针"><a href="#染色指针" class="headerlink" title="染色指针"></a>染色指针</h5><p>ZGC 的一大特点是使用了染色指针，相比于 G1 使用额外的空间记录三色标记，ZGC 直接将其记录在堆中对象的指针上。Linux 中 64 bit 的指针只使用了低 46 位，而 ZGC 将 46 位中的高 4 位用于标记，可见 ZGC 只能够管理 4 TB 堆空间，其中高 4 位的使用如下图所示。</p>
-<p><img src="染色指针.png" alt="alt"></p>
+<p><img src="染色指针.png" alt="ZGC的染色指针技术"></p>
 <p>由上面分布可知，虚拟地址 [0，4TB）、[4，8TB）、[8，12TB）、[16，20TB）分别对应 Java 程序的虚拟地址、Marked0、Marked1、Remapped 视图。当程序对象时，在堆中申请一个虚拟地址，该地址不会映射到物理地址，而是为该对象在 Marked0、Marked1、Remapped 分别申请一个虚拟地址，并且映射到同一块内存，效果如下图所示。三个视图的切换在下文介绍。</p>
-<p><img src="内存映射.png" alt="alt"></p>
+<p><img src="内存映射.png" alt="ZGC的内存映射技术"></p>
 <h5 id="读屏障"><a href="#读屏障" class="headerlink" title="读屏障"></a>读屏障</h5><p>读屏障是JVM向应用代码插入一小段代码的技术。当应用线程从堆中读取对象引用时，就会执行这段代码。</p>
 <p>读屏障用于在对象标记和移动对象过程中，用于确定对象的引用地址是否满足条件，并作出相应动作。</p>
-<p><img src="读屏障.png" alt="alt"></p>
+<p><img src="读屏障.png" alt="读屏障"></p>
 <h4 id="3-6-3-地址视图切换"><a href="#3-6-3-地址视图切换" class="headerlink" title="3.6.3 地址视图切换"></a>3.6.3 地址视图切换</h4><p>ZGC 的回收周期如下图所示，其中只有 初始阶段、再标记、初始转移是 STW 的。</p>
-<p><img src="zgc周期.png" alt="alt"></p>
+<p><img src="zgc周期.png" alt="ZGC GC周期"></p>
 <p>在一个周期中的地址视图切换（更新指针）过程如下：</p>
 <ul>
 <li>初始化：整个地址空间被设置为 Remapped，满足 GC 条件后进入标记阶段；</li>
@@ -301,14 +301,14 @@
 <blockquote>
 <p>具体算法实现可见 《新一代垃圾回收器ZGC设计与实现》第 4 章。</p>
 </blockquote>
-<p><img src="视图转变.png" alt="alt"></p>
+<p><img src="视图转变.png" alt="ZGC GC过程的视图转变"></p>
 <p>此时三个视图代表的含义为：</p>
 <ul>
 <li>Marked1：本次 GC 识别的活跃对象。</li>
 <li>Marked0：前一次垃圾回收的标记阶段被标记过的活跃对象，对象在转移阶段未被转移，但是在本次垃圾回收中被识别为不活跃对象。</li>
 <li>Remapped：前一次垃圾回收的转移阶段发生转移的对象或者是被应用程序线程访问的对象，但是在本次垃圾回收中被识别为不活跃对象。</li>
 </ul>
-<h2 id="4-总结图"><a href="#4-总结图" class="headerlink" title="4. 总结图"></a>4. 总结图</h2><p><img src="总结.png" alt="alt"></p>
+<h2 id="4-总结图"><a href="#4-总结图" class="headerlink" title="4. 总结图"></a>4. 总结图</h2><p><img src="总结.png" alt="总结导图"></p>
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497/">深入理解Java虚拟机</a></li>
 <li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26821357/">垃圾回收的算法与实现</a></li>

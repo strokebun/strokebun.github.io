@@ -7,7 +7,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7">
 <meta property="article:published_time" content="2022-02-09T01:49:46.000Z">
-<meta property="article:modified_time" content="2022-02-15T01:45:49.172Z">
+<meta property="article:modified_time" content="2022-02-17T10:34:23.455Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="JVM">
 <meta name="twitter:card" content="summary">
@@ -53,7 +53,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: true,
-  postUpdate: '2022-02-15 09:45:49'
+  postUpdate: '2022-02-17 18:34:23'
 }</script><noscript><style type="text/css">
   #nav {
     opacity: 1
@@ -142,11 +142,11 @@
       }
     }
     detectApple()
-    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">面向money编程</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM系列(1) Java内存区域</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-09T01:49:46.000Z" title="发表于 2022-02-09 09:49:46">2022-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-15T01:45:49.172Z" title="更新于 2022-02-15 09:45:49">2022-02-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM系列(1) Java内存区域"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-JVM简介"><a href="#1-JVM简介" class="headerlink" title="1. JVM简介"></a>1. JVM简介</h2><p>Java Virutal Machine，JVM，Java 虚拟机，是用于执行字节码的虚拟计算机。</p>
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">34</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">14</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">面向money编程</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">JVM系列(1) Java内存区域</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-09T01:49:46.000Z" title="发表于 2022-02-09 09:49:46">2022-02-09</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-17T10:34:23.455Z" title="更新于 2022-02-17 18:34:23">2022-02-17</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/Java/">Java</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="JVM系列(1) Java内存区域"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-JVM简介"><a href="#1-JVM简介" class="headerlink" title="1. JVM简介"></a>1. JVM简介</h2><p>Java Virutal Machine，JVM，Java 虚拟机，是用于执行字节码的虚拟计算机。</p>
 <p>JVM 是 Java 平台的基石，是实现硬件无关和平台无关的关键部分，是字节码的运行平台。它与 Java 语言没有必然联系，只与特定的 class 文件格式所关联，并且遵守自己的虚拟机规范。</p>
 <p>目前最主流的虚拟机是 Oracle 的 hotspot。</p>
 <h2 id="2-Java内存区域"><a href="#2-Java内存区域" class="headerlink" title="2. Java内存区域"></a>2. Java内存区域</h2><h3 id="2-1-运行时数据区"><a href="#2-1-运行时数据区" class="headerlink" title="2.1 运行时数据区"></a>2.1 运行时数据区</h3><p>JVM 规范定义了若干程序运行期间会使用到的运行数据区，如下图所示。</p>
-<p><img src="运行时数据区.png" alt="alt"></p>
+<p><img src="运行时数据区.png" alt="运行时数据区"></p>
 <p>运行时数据区：</p>
 <ul>
 <li>程序计数器：线程私有，记录线程执行上下文。程序的分支、异常处理、线程切换等工作依赖这个计数器完成；</li>
@@ -167,10 +167,10 @@
 <h2 id="3-对象存储"><a href="#3-对象存储" class="headerlink" title="3. 对象存储"></a>3. 对象存储</h2><h3 id="3-1-对象访问"><a href="#3-1-对象访问" class="headerlink" title="3.1 对象访问"></a>3.1 对象访问</h3><p>对于堆中的对象，虚拟机主要有两种访问方式：</p>
 <ul>
 <li><p>句柄访问：堆中划分出句柄池，引用存储对象的句柄，句柄包含对象实例数据指针和类型数据指针。优点是对象移动时只需要改变句柄的实例数据指针。</p>
-<p><img src="句柄访问.png" alt="alt"></p>
+<p><img src="句柄访问.png" alt="句柄访问"></p>
 </li>
 <li><p>直接指针访问：引用直接存储对象地址，在堆中的对象实例中存储了实例数据和指向类型的指针，优点是少一次指针定位。</p>
-<p><img src="句柄访问.png" alt="alt"></p>
+<p><img src="直接指针访问.png" alt="直接指针访问"></p>
 </li>
 </ul>
 <p>hotspot 采用直接指针访问的方式。</p>
@@ -179,7 +179,7 @@
 <li><p>对象头，主要包含：</p>
 <ul>
 <li><p>Mark Word：记录对象自身的运行时数据，64 位虚拟机的 Mark Word 内容如下图所示。</p>
-<p><img src="markword.png" alt="alt"></p>
+<p><img src="markword.png" alt="Mark Word"></p>
 </li>
 <li><p>类型指针：指向类元数据的指针，JVM 通过指针定位方法区中的 klass 对象。</p>
 </li>
@@ -196,12 +196,12 @@
 </blockquote>
 <p>以下代码的 oop-klass 模型如图所示。</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Model</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">int</span> a = <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">int</span> b;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Model</span><span class="params">(<span class="keyword">int</span> b)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.b = b;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">int</span> c = <span class="number">10</span>;</span><br><span class="line">    Model modelA = <span class="keyword">new</span> Model(<span class="number">2</span>);</span><br><span class="line">    Model modelB = <span class="keyword">new</span> Model(<span class="number">3</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-<p><img src="oop-klass.png" alt="alt"></p>
+<p><img src="oop-klass.png" alt="oop-klass举例"></p>
 <blockquote>
 <p>此图存在一定问题，在 jdk 1.7 之后，静态变量被移动到堆中，故图中的 a 变量应该位于堆而不是方法区。</p>
 </blockquote>
 <h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h2><p>上文主要介绍了虚拟机的内存是如何划分的，以及相应区域溢出时会产生的异常。除此之外，还介绍了对象在堆中的内存分布和访问手段。本文的思维导图如下：</p>
-<p><img src="总结.png" alt="alt"></p>
+<p><img src="总结.png" alt="总结导图"></p>
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/34907497/">深入理解Java虚拟机</a></li>
 <li><a target="_blank" rel="noopener" href="https://book.douban.com/subject/26418340/">Java虚拟机规范(JavaSE 8版)</a></li>
