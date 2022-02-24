@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>消息队列概述</title>
+      <link href="/2022/02/24/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/"/>
+      <url>/2022/02/24/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/</url>
+      
+        <content type="html"><![CDATA[<h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1.介绍"></a>1.介绍</h2><p>消息队列 Message Queue，MQ 是现今系统中常用的中间件，一般有以下用途。</p><h4 id="异步处理"><a href="#异步处理" class="headerlink" title="异步处理"></a>异步处理</h4><p>同步请求需要阻塞等待服务端的响应，增加了调用时间，而 MQ 可以实现服务的异步处理，可以：</p><ul><li>更快地返回结果，减少等待；</li><li>自然实现并发，提升系统的总体性能。</li></ul><h4 id="流量控制"><a href="#流量控制" class="headerlink" title="流量控制"></a>流量控制</h4><p>在瞬间高并发的场景下，服务器无法处理可能被打挂，而其他阶段的流量又很少，服务器计算资源浪费。MQ 可以隔离网关和后端服务，达到削峰填谷的功能。</p><h4 id="服务解耦"><a href="#服务解耦" class="headerlink" title="服务解耦"></a>服务解耦</h4><p>MQ 的另一个作用，是实现系统应用间的解耦。例如一个服务 A，需要依次调用 B、C、D，服务中出现了强耦合。</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">service <span class="title">A</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    B();</span><br><span class="line">    C();</span><br><span class="line">    D();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>而当出现新服务 E 需要调用时，需要改动 A 服务。而引入 MQ 后，A 可以通过发送消息到一个 Topic，下游服务通过订阅 Topic 获得消息处理，这样下游服务的变化对上游服务没有影响。</p><blockquote><p>虽然 MQ 具有上述好处，但引入 MQ 也会带来延迟、增加系统复杂度、导致数据不一致的问题，需要权衡选择。</p></blockquote><h2 id="2-主流的消息队列"><a href="#2-主流的消息队列" class="headerlink" title="2.主流的消息队列"></a>2.主流的消息队列</h2><p>消息队列种类繁多，其中最主流的有 RabbitMQ、RocketMQ、Kafka。</p><h4 id="RabbitMQ"><a href="#RabbitMQ" class="headerlink" title="RabbitMQ"></a>RabbitMQ</h4><p>RabbitMQ 是老牌的消息队列，最早用于电信系统的可靠通信，其最大的优点是低延迟，可以达到微妙级，并且轻量易部署。</p><p>但是 RabbitMQ 也存在以下问题：</p><ul><li>消息堆积时性能急剧下降；</li><li>吞吐量较低，只能达到万级；</li><li>基于小众语言 Erlang 实现，二次开发困难。</li></ul><p>由于上述的缺点，RabbitMQ 已不再受大型互联网公司的青睐。</p><h4 id="RocketMQ"><a href="#RocketMQ" class="headerlink" title="RocketMQ"></a>RocketMQ</h4><p>RocketMQ 是阿里开源的消息队列，后面捐赠给 Apache 成为顶级项目。</p><p>RocketMQ 基于 Java 开发，二次开发和拓展比较容易，并且对在线业务的响应时延做了大量优化，可以达到毫秒级别的延迟，适合快速响应的场景，吞吐量在十万级别。</p><h4 id="Kafka"><a href="#Kafka" class="headerlink" title="Kafka"></a>Kafka</h4><p>Kafka 由 Linkedln 开发，目前是 Apache 的顶级项目，最初是为了处理海量日志。</p><p>Kafka 使用 Scala 和 Java 开发，拥有良好的生态，在大数据领域都会支持 Kafka，延迟和吞吐量都与 RocketMQ 相近，最适合处理海量消息例如日志、监控信息、埋点等。</p><div class="table-container"><table><thead><tr><th style="text-align:center">特性</th><th style="text-align:center">RabbitMQ</th><th style="text-align:center">RocketMQ</th><th style="text-align:center">Kafka</th></tr></thead><tbody><tr><td style="text-align:center">单机吞吐量</td><td style="text-align:center">同 ActiveMQ</td><td style="text-align:center">10 万级，支撑高吞吐</td><td style="text-align:center">10 万级，高吞吐，一般配合大数据类的系统来进行实时数据计算、日志采集等场景</td></tr><tr><td style="text-align:center">topic 数量对吞吐量的影响</td><td style="text-align:center"></td><td style="text-align:center">topic 可以达到几百/几千的级别，吞吐量会有较小幅度的下降，这是 RocketMQ 的一大优势，在同等机器下，可以支撑大量的 topic</td><td style="text-align:center">topic 从几十到几百个时候，吞吐量会大幅度下降，在同等机器下，Kafka 尽量保证 topic 数量不要过多，如果要支撑大规模的 topic，需要增加更多的机器资源</td></tr><tr><td style="text-align:center">时效性</td><td style="text-align:center">微秒级，这是 RabbitMQ 的一大特点，延迟最低</td><td style="text-align:center">ms 级</td><td style="text-align:center">延迟在 ms 级以内</td></tr><tr><td style="text-align:center">可用性</td><td style="text-align:center">同 ActiveMQ</td><td style="text-align:center">非常高，分布式架构</td><td style="text-align:center">非常高，分布式，一个数据多个副本，少数机器宕机，不会丢失数据，不会导致不可用</td></tr><tr><td style="text-align:center">消息可靠性</td><td style="text-align:center">基本不丢</td><td style="text-align:center">经过参数优化配置，可以做到 0 丢失</td><td style="text-align:center">同 RocketMQ</td></tr><tr><td style="text-align:center">功能支持</td><td style="text-align:center">基于 erlang 开发，并发能力很强，性能极好，延时很低</td><td style="text-align:center">MQ 功能较为完善，还是分布式的，扩展性好</td><td style="text-align:center">功能较为简单，主要支持简单的 MQ 功能，在大数据领域的实时计算以及日志采集被大规模使用</td></tr></tbody></table></div><h2 id="3-常见设计问题"><a href="#3-常见设计问题" class="headerlink" title="3. 常见设计问题"></a>3. 常见设计问题</h2><h3 id="3-1-消息不丢失"><a href="#3-1-消息不丢失" class="headerlink" title="3.1 消息不丢失"></a>3.1 消息不丢失</h3><p>一条消息从生成到消费完成，一般需要经历三个阶段。</p><p><img src="消息的生命周期.png" alt="消息的三个阶段"></p><ul><li>生产阶段：Producer 创建消息，发送到 Broker；</li><li>存储阶段：Broker 存储消息；</li><li>消费阶段：Consumer 从 Broker 拉取消息，消息经过网络传输到 Consumer。</li></ul><p>三个阶段都可能发生消息丢失，都需要进行保障。</p><h4 id="生产阶段"><a href="#生产阶段" class="headerlink" title="生产阶段"></a>生产阶段</h4><p>类似 TCP 的可靠传输，消息队列使用了请求确认机制，只要客户端收到了 Broker 的确认，那么生产阶段的消息就不会丢失。</p><p>在编写消息发送的代码时，需要注意捕获异常和处理异步调用，发送失败进行重传，就能保证该阶段的消息不丢失。</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">try</span> &#123;</span><br><span class="line">    RecordMetadata data = producer.send(message.get());</span><br><span class="line">    System.out.println(<span class="string">&quot;发送成功&quot;</span>);</span><br><span class="line">&#125; <span class="keyword">catch</span> (Throwable e) &#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;发送失败&quot;</span>);</span><br><span class="line">    <span class="comment">// 重传逻辑</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><h4 id="存储阶段"><a href="#存储阶段" class="headerlink" title="存储阶段"></a>存储阶段</h4><p>在单机情况下，通过合理的配置，Broker 在消息落盘后对客户端发送确认，此时已经保证消息不丢失。</p><p>对于集群模式，需要发送其他 2 个以上的节点，再给客户端发送确认，才能保证消息不丢失。</p><h4 id="消费阶段"><a href="#消费阶段" class="headerlink" title="消费阶段"></a>消费阶段</h4><p>消费阶段也采用确认机制，Broker 没收到消费端的确认，下一次仍返回同一条消息。</p><p>在消费端的业务代码中，需要执行完所有业务逻辑，再发送确认。</p><p>但再消费阶段可能存在一个坑点，消费失败，下次拉取消息继续消费失败，继续拉取，继续失败……这样会导致消费端死循环，真实场景一般会选用以下方案：</p><ul><li>消息失败将消息存到 Redis，记录消费次数，多次消费失败则丢弃，记录日志落库保存；</li><li>丢失该消息，记录日志，通过邮件、短信等手段通知负责人手动处理。</li></ul><h3 id="3-2-消息重复消费"><a href="#3-2-消息重复消费" class="headerlink" title="3.2 消息重复消费"></a>3.2 消息重复消费</h3><p>消息队列普遍采用请求确认机制，消费端难免拉取到重复的消息，一般的解决方案是实现消费幂等性。</p><h4 id="数据库唯一约束"><a href="#数据库唯一约束" class="headerlink" title="数据库唯一约束"></a>数据库唯一约束</h4><p>一个实现消费幂等性的手段是使用数据库的唯一约束，例如现在的场景是 给 B 增加 100元，可以建立一张转账表，其中有转账单 id、账户 id 和变更金额等字段，组合转账单 id 和账户 id 作为唯一约束，这样对于相同的转账单，表中只能存在一条记录，而消费消息的逻辑变为在转账表中添加转账记录，后续根据转账记录，异步更新用户余额，即实现了幂等消费。</p><p>类似的，也可以使用 Redis 的 SETNX 操作实现。</p><h4 id="设置版本号"><a href="#设置版本号" class="headerlink" title="设置版本号"></a>设置版本号</h4><p>另一个常用的手段是给消息和表都增加一个版本号，比较当前数据和消费的版本号是否一致，不一致则丢弃数据，一致则更新数据并将版本号 +1，实现幂等更新。</p><h4 id="分布式id"><a href="#分布式id" class="headerlink" title="分布式id"></a>分布式id</h4><p>在发送消息时，给消息指定分布式 id，消费时检查该 id 的消息是否被消费过，如果没有消费则更新数据，同时更改消费状态。</p><p>这种方式的通用性最强，可以处理绝大部分场景，但是分布式 id 的生成是一个难题。</p><h3 id="3-3-消息顺序性"><a href="#3-3-消息顺序性" class="headerlink" title="3.3 消息顺序性"></a>3.3 消息顺序性</h3><p>在 binlog 同步系统中，如果引入了消息队列，消费端消费的顺序需要与生产顺序一致，否则将会导致数据错误。最直接的手段是只采用一个 queue，消费者单线程拉取，这样就保证了顺序性，但却牺牲了吞吐量。</p><p>对于一般系统而言，通常有以下手段：</p><ul><li>生产端首先需要保证入队顺序，使用同步发送，一个消息发送成功再发送下一个消息；</li><li>通过哈希取模等方法，让同一个订单进入同一个队列；</li><li>消费端保证消费顺序性，使用多线程，但每个线程消费对应的队列。</li></ul><p><img src="顺序消费.png" alt="顺序消费"></p><h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p><img src="消息队列总结.png" alt="消息队列总结"></p><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li><a href="https://time.geekbang.org/column/intro/100032301">消息队列高手课</a></li><li><a href="https://github.com/doocs/advanced-java">advanced-java</a></li><li><a href="https://juejin.cn/post/6977981645475282958#heading-0">RabbitMQ 可靠性、重复消费、顺序性、消息积压解决方案</a></li><li><a href="https://juejin.cn/post/7055156612528341022#heading-0">一看就会的kafka多线程顺序消费</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 中间件 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 消息队列 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>HTTP GET和POST的区别</title>
       <link href="/2022/02/22/HTTP%20GET%E5%92%8CPOST%E7%9A%84%E5%8C%BA%E5%88%AB/"/>
       <url>/2022/02/22/HTTP%20GET%E5%92%8CPOST%E7%9A%84%E5%8C%BA%E5%88%AB/</url>
@@ -488,7 +513,7 @@
       
       <categories>
           
-          <category> NoSQL </category>
+          <category> 中间件 </category>
           
       </categories>
       
@@ -513,7 +538,7 @@
       
       <categories>
           
-          <category> NoSQL </category>
+          <category> 中间件 </category>
           
       </categories>
       
@@ -538,7 +563,7 @@
       
       <categories>
           
-          <category> NoSQL </category>
+          <category> 中间件 </category>
           
       </categories>
       
@@ -563,7 +588,7 @@
       
       <categories>
           
-          <category> NoSQL </category>
+          <category> 中间件 </category>
           
       </categories>
       
