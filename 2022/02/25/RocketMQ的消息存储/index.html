@@ -1,0 +1,234 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>RocketMQ的消息存储 | 包老师写作的地方</title><meta name="keywords" content="消息队列"><meta name="author" content="StrokeBun"><meta name="copyright" content="StrokeBun"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. 介绍上文 消息队列概述 中说到，为了保证消息不丢失，要求 Broker 将消息落盘后再给客户端发送确认，这就涉及到了消息存储机制。消息存储是 RocketMQ 最为复杂和重要的部分，但官方文档对此介绍却十分简略，难以理解。 下图为官方的说明图。  RocketMQ 的消息存储主要由 CommitLog、ConsumeQueue 和 IndexFile 实现。 CommitLogBroker">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RocketMQ的消息存储">
+<meta property="og:url" content="https://strokebun.github.io/2022/02/25/RocketMQ%E7%9A%84%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/index.html">
+<meta property="og:site_name" content="包老师写作的地方">
+<meta property="og:description" content="1. 介绍上文 消息队列概述 中说到，为了保证消息不丢失，要求 Broker 将消息落盘后再给客户端发送确认，这就涉及到了消息存储机制。消息存储是 RocketMQ 最为复杂和重要的部分，但官方文档对此介绍却十分简略，难以理解。 下图为官方的说明图。  RocketMQ 的消息存储主要由 CommitLog、ConsumeQueue 和 IndexFile 实现。 CommitLogBroker">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://strokebun.github.io/img/default.jpg">
+<meta property="article:published_time" content="2022-02-25T08:43:50.000Z">
+<meta property="article:modified_time" content="2022-02-25T12:34:11.083Z">
+<meta property="article:author" content="StrokeBun">
+<meta property="article:tag" content="消息队列">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://strokebun.github.io/img/default.jpg"><link rel="shortcut icon" href="/img/bun.png"><link rel="canonical" href="https://strokebun.github.io/2022/02/25/RocketMQ%E7%9A%84%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6/css/all.min.css" media="print" onload="this.media='all'"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = { 
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlighjs","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: '复制成功',
+    error: '复制错误',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  date_suffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  source: {
+    justifiedGallery: {
+      js: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.js',
+      css: 'https://cdn.jsdelivr.net/npm/flickr-justified-gallery@2/dist/fjGallery.min.css'
+    }
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'RocketMQ的消息存储',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2022-02-25 20:34:11'
+}</script><noscript><style type="text/css">
+  #nav {
+    opacity: 1
+  }
+  .justified-gallery img {
+    opacity: 1
+  }
+
+  #recent-posts time,
+  #post-meta time {
+    display: inline !important
+  }
+</style></noscript><script>(win=>{
+    win.saveToLocal = {
+      set: function setWithExpiry(key, value, ttl) {
+        if (ttl === 0) return
+        const now = new Date()
+        const expiryDay = ttl * 86400000
+        const item = {
+          value: value,
+          expiry: now.getTime() + expiryDay,
+        }
+        localStorage.setItem(key, JSON.stringify(item))
+      },
+
+      get: function getWithExpiry(key) {
+        const itemStr = localStorage.getItem(key)
+
+        if (!itemStr) {
+          return undefined
+        }
+        const item = JSON.parse(itemStr)
+        const now = new Date()
+
+        if (now.getTime() > item.expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return item.value
+      }
+    }
+  
+    win.getScript = url => new Promise((resolve, reject) => {
+      const script = document.createElement('script')
+      script.src = url
+      script.async = true
+      script.onerror = reject
+      script.onload = script.onreadystatechange = function() {
+        const loadState = this.readyState
+        if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+        script.onload = script.onreadystatechange = null
+        resolve()
+      }
+      document.head.appendChild(script)
+    })
+  
+      win.activateDarkMode = function () {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = function () {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+          if (t === 'dark') activateDarkMode()
+          else if (t === 'light') activateLightMode()
+        
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+    const detectApple = () => {
+      if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">40</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">包老师写作的地方</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">RocketMQ的消息存储</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-25T08:43:50.000Z" title="发表于 2022-02-25 16:43:50">2022-02-25</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-25T12:34:11.083Z" title="更新于 2022-02-25 20:34:11">2022-02-25</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="RocketMQ的消息存储"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><p>上文 <a target="_blank" rel="noopener" href="https://blog.strokebun.top/2022/02/24/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/">消息队列概述</a> 中说到，为了保证消息不丢失，要求 Broker 将消息落盘后再给客户端发送确认，这就涉及到了消息存储机制。消息存储是 RocketMQ 最为复杂和重要的部分，但官方文档对此介绍却十分简略，难以理解。</p>
+<p>下图为官方的说明图。</p>
+<p><img src="消息存储官方图.png" alt="消息存储官方图"></p>
+<p>RocketMQ 的消息存储主要由 CommitLog、ConsumeQueue 和 IndexFile 实现。</p>
+<h4 id="CommitLog"><a href="#CommitLog" class="headerlink" title="CommitLog"></a>CommitLog</h4><p>Broker 收到信息后，把这个消息顺序写入到磁盘上的一个文件，叫作 CommitLog。所有 topic 下的消息都写入到 CommitLog 中，实现严格的顺序写，提高磁盘写入速率。</p>
+<p>CommitLog 存储了消息内容和元数据，其存储文件单个大小默认为 1G，文件名是起始偏移量，长度为 20 位。第一个文件名为 00000000000000000000，当第一个文件写满了，第二个文件为 00000000001073741824（1G = 1073741824），以此类推。</p>
+<p><img src="commitlog示意.png" alt="CommitLog示意"></p>
+<h4 id="ConsumeQueue"><a href="#ConsumeQueue" class="headerlink" title="ConsumeQueue"></a>ConsumeQueue</h4><p>RocketMQ 是基于 topic 和 tag 的订阅模式，消费消息也是根据 topic 进行的，遍历 CommitLog 查找 topic 十分低效，故引入 ComsumeQueue 来提高搜索效率。</p>
+<p>ComsumeQueue 可以看成是基于 topic 的 CommitLog 索引，采用定长设计，每个条目 20 个字节，保存了指定 topic 下的消息的在 CommitLog 中的偏移 offset（8 字节）、消息大小 size（4字节）、和消息 tag 的 hashCode 值（8 字节）。</p>
+<p><img src="consumequeue示意.png" alt="ConsumeQueue"></p>
+<p>每一个 topic 下的每个 MessageQueue 都有对应的一系列 ConsumeQueue文件，在磁盘中存储以文件树的形式存在：</p>
+<p><img src="consumequeue存储.png" alt="ConsumeQueue存储"></p>
+<h4 id="IndexFile"><a href="#IndexFile" class="headerlink" title="IndexFile"></a>IndexFile</h4><p>IndexFile 提供了一种可以通过 key 或时间区间来查询消息的方法。</p>
+<p>IndexFile 的文件逻辑结构如下图，类似哈希表，主要由 Header、Slot Table、Index Linked List 三部分组成。</p>
+<p><img src="indexfile.png" alt="IndexFile"></p>
+<ul>
+<li>Header：存储这个 IndexFile 文件的元信息，主要包括：<ul>
+<li>beginTimestamp：包含消息的最小存储时间；</li>
+<li>endTimestamp：包含消息的最大存储时间；</li>
+<li>beginPhyoffset：包含消息的最小 CommitLog 文件偏移量；</li>
+<li>endPhyoffset：包含消息的最大 CommitLog 文件偏移量；</li>
+<li>hashSlotcount：包含 hashSlot 的数量；</li>
+<li>indexCount：已使用的 index 数量。</li>
+</ul>
+</li>
+<li>Slot Table：哈希表，每个槽存储相同 hash 值的 IndexItem 链表头节点；</li>
+<li>Index Linked List：IndexItem 链表，包含：<ul>
+<li>Key Hash：消息 key 的 hash；</li>
+<li>Commit Offset：消息的物理偏移；</li>
+<li>Next Index Offset：链表的下一个 IndexItem 的位置。</li>
+</ul>
+</li>
+</ul>
+<p>例如根据 key 查找，其结果跟哈希表的搜索类似，会根据 key 的哈希值找到 IndexItem 链表头，遍历链表比对 key 自身，寻找匹配的 IndexItem。</p>
+<h2 id="2-页缓存和mmap"><a href="#2-页缓存和mmap" class="headerlink" title="2. 页缓存和mmap"></a>2. 页缓存和mmap</h2><p>在介绍写入和读取消息前，需要先补充两个 RocketMQ 利用的操作系统的机制。</p>
+<h3 id="2-1-页缓存"><a href="#2-1-页缓存" class="headerlink" title="2.1 页缓存"></a>2.1 页缓存</h3><p>Page Cache，页缓存是操作系统对磁盘的缓存，将磁盘的数据缓存到内存中。</p>
+<ul>
+<li>当内核进行一个读操作时，先检查数据是否命中（是否在页缓存中），如果是，则会直接从内存读取；否则则从磁盘中读取该页和相邻的页（称为预读），并加载到页缓存中；</li>
+<li>当内核进行一个写操作时，将缓存中的数据标记为脏，并由一个后台进程写回磁盘，实现数据同步（称为回写）。用户层面的数据写入可以被近似为一个写内存的的操作。</li>
+</ul>
+<blockquote>
+<p>页缓存的具体机制可见 《Linux 内核设计与实现》第 16 章。</p>
+<p>可以发现，CommitLog 相对于 Page Cache，类似于 InnoDB 中的 redo log 相对于 Buffer Pool。Page Cache、Buffer Pool 与 CPU cache、分布式系统中的缓存也有共通之处，读者可以自行归纳。</p>
+</blockquote>
+<p>在对消息进行消费时，会对 ConsumeQueue 进行顺序读取，在 Page Cache 的预读机制作用下，极大提升读性能。</p>
+<h3 id="2-2-mmap"><a href="#2-2-mmap" class="headerlink" title="2.2 mmap"></a>2.2 mmap</h3><p>mmap 可以将磁盘上的物理文件直接映射到用户态的内存地址中，减少了传统 IO 需要从用户态到内核缓冲区的拷贝操作。</p>
+<blockquote>
+<p>mmap 的具体介绍可见《Linux 内核设计与实现》第 15.5 小节。</p>
+</blockquote>
+<p>Java 中提供了 <code>MappedBuffer</code> 实现将文件的操作转化为直接在内存地址进行操作，极大提高了文件的读写效率。RocketMQ 主要通过 <code>MappedByteBuffer</code> 进行文件读写。</p>
+<h2 id="3-消息写入"><a href="#3-消息写入" class="headerlink" title="3. 消息写入"></a>3. 消息写入</h2><p>最底层消息写入逻辑在 CommitLog 的 <code>asyncPutMessage</code> 方法中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.apache.rocketmq.store.CommitLog::asyncPutMessage</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CompletableFuture&lt;PutMessageResult&gt; <span class="title">asyncPutMessage</span><span class="params">(<span class="keyword">final</span> MessageExtBrokerInner msg)</span> </span>&#123;</span><br><span class="line">        ...</span><br><span class="line">        putMessageLock.lock(); <span class="comment">//spin or ReentrantLock ,depending on store config</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="comment">// 获取MappedFile</span></span><br><span class="line">            MappedFile mappedFile = <span class="keyword">this</span>.mappedFileQueue.getLastMappedFile();</span><br><span class="line">            ...</span><br><span class="line">            <span class="comment">// 向缓冲区写消息</span></span><br><span class="line">            result = mappedFile.appendMessage(msg, <span class="keyword">this</span>.appendMessageCallback, putMessageContext);</span><br><span class="line">            ...</span><br><span class="line">            <span class="comment">// 提交刷盘请求</span></span><br><span class="line">            CompletableFuture&lt;PutMessageStatus&gt; flushResultFuture = submitFlushRequest(result, msg);</span><br><span class="line">            ...</span><br><span class="line">        &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">            putMessageLock.unlock();</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p><code>asyncPutMessage</code> 主要分为获取 MappedFile、写缓冲区、提交刷盘请求三步。</p>
+<h3 id="3-1-获取MappedFile"><a href="#3-1-获取MappedFile" class="headerlink" title="3.1 获取MappedFile"></a>3.1 获取MappedFile</h3><p>申请创建 <code>MappedFile</code> 会创建两个，这样下次请求即可使用已预创的 <code>MappedFile</code>，减少等待时间。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//org.apache.rocketmq.store.AllocateMappedFileService::putRequestAndReturnMappedFile</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> MappedFile <span class="title">putRequestAndReturnMappedFile</span><span class="params">(String nextFilePath, String nextNextFilePath, <span class="keyword">int</span> fileSize)</span> </span>&#123;</span><br><span class="line">    <span class="comment">//请求创建 MappedFile</span></span><br><span class="line">    AllocateRequest nextReq = <span class="keyword">new</span> AllocateRequest(nextFilePath, fileSize);</span><br><span class="line">    <span class="keyword">boolean</span> nextPutOK = <span class="keyword">this</span>.requestTable.putIfAbsent(nextFilePath, nextReq) == <span class="keyword">null</span>;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//请求预先创建下一个 MappedFile</span></span><br><span class="line">    AllocateRequest nextNextReq = <span class="keyword">new</span> AllocateRequest(nextNextFilePath, fileSize);</span><br><span class="line">    <span class="keyword">boolean</span> nextNextPutOK = <span class="keyword">this</span>.requestTable.putIfAbsent(nextNextFilePath, nextNextReq) == <span class="keyword">null</span>;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">//获取本次创建 MappedFile</span></span><br><span class="line">    AllocateRequest result = <span class="keyword">this</span>.requestTable.get(nextFilePath);</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>除了预分配之外，还会进行文件预热。因为虽然建立了虚拟内存地址到物理内存地址的映射，但此锁并没有加载 Page Cache，当读写数据时发现未命中才会从磁盘中加载，影响性能。预热实现如下：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//org.apache.rocketmq.store.MappedFile::warmMappedFile</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">warmMappedFile</span><span class="params">(FlushDiskType type, <span class="keyword">int</span> pages)</span> </span>&#123;</span><br><span class="line">        ByteBuffer byteBuffer = <span class="keyword">this</span>.mappedByteBuffer.slice();</span><br><span class="line">        <span class="keyword">int</span> flush = <span class="number">0</span>;</span><br><span class="line">        <span class="comment">// 通过写入 1G 的字节 0 来让操作系统分配物理内存空间，如果没有填充，操作系统不会实际分配物理内存</span></span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>, j = <span class="number">0</span>; i &lt; <span class="keyword">this</span>.fileSize; i += MappedFile.OS_PAGE_SIZE, j++) &#123;</span><br><span class="line">            byteBuffer.put(i, (<span class="keyword">byte</span>) <span class="number">0</span>);</span><br><span class="line">            <span class="comment">// force flush when flush disk type is sync</span></span><br><span class="line">            <span class="keyword">if</span> (type == FlushDiskType.SYNC_FLUSH) &#123;</span><br><span class="line">                <span class="keyword">if</span> ((i / OS_PAGE_SIZE) - (flush / OS_PAGE_SIZE) &gt;= pages) &#123;</span><br><span class="line">                    flush = i;</span><br><span class="line">                    mappedByteBuffer.force();</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            ... </span><br><span class="line">        &#125;</span><br><span class="line"> </span><br><span class="line">        <span class="comment">// force flush when prepare load finished</span></span><br><span class="line">        <span class="keyword">if</span> (type == FlushDiskType.SYNC_FLUSH) &#123;</span><br><span class="line">            mappedByteBuffer.force();</span><br><span class="line">        &#125;</span><br><span class="line">        ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="3-2-写缓冲区"><a href="#3-2-写缓冲区" class="headerlink" title="3.2 写缓冲区"></a>3.2 写缓冲区</h3><p>CommitLog 中包含了消息内容、消息长度、魔数、发送时间、是否压缩等信息，<code>CommitLog::appendMessagesInner</code> 方法实现了写入逻辑。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org.apache.rocketmq.store.MappedFile::appendMessagesInner</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> AppendMessageResult <span class="title">appendMessagesInner</span><span class="params">(<span class="keyword">final</span> MessageExt messageExt, <span class="keyword">final</span> AppendMessageCallback cb, PutMessageContext putMessageContext)</span> </span>&#123;</span><br><span class="line">    ByteBuffer byteBuffer = writeBuffer != <span class="keyword">null</span> ? writeBuffer.slice() : <span class="keyword">this</span>.mappedByteBuffer.slice();</span><br><span class="line">    ...</span><br><span class="line">    byteBuffer.position(currentPos);</span><br><span class="line">    AppendMessageResult result  = cb.doAppend(...);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"> </span><br><span class="line"><span class="comment">// org.apache.rocketmq.store.CommitLog::doAppend</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> AppendMessageResult <span class="title">doAppend</span><span class="params">(<span class="keyword">final</span> <span class="keyword">long</span> fileFromOffset, <span class="keyword">final</span> ByteBuffer byteBuffer, <span class="keyword">final</span> <span class="keyword">int</span> maxBlank, <span class="keyword">final</span> MessageExtBrokerInner msgInner, PutMessageContext putMessageContext)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 将消息写入缓冲区，未实际刷盘</span></span><br><span class="line">    byteBuffer.put(preEncodeBuffer);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<p>到此为此，消息被写入了 <code>ByteBuffer</code>，何时持久化将在刷盘中介绍。</p>
+<p>此处只写入了 CommitLog，那么 ConsumeQueue 和 IndexFile 在哪写入呢？因为 CommitLog 内保存了 ConsumeQueue 和 IndexFile 的所需信息，即使 Broker 崩溃，也能依靠这些信息恢复。故在存储消息时，会启动一个异步线程存储 ConsumeQueue 和 IndexFile，进一步提升性能。</p>
+<h3 id="3-3-消息刷盘"><a href="#3-3-消息刷盘" class="headerlink" title="3.3 消息刷盘"></a>3.3 消息刷盘</h3><p>RocketMQ 的刷盘分为：</p>
+<ul>
+<li>同步刷盘：消息持久到磁盘后 Broker 才发送确认给客户端。如果保证消息不丢失，需要采用同步刷盘，但会降低性能；</li>
+<li>异步刷盘：写入 Page Cache 后 Broker 就发送确认，消息刷盘依赖操作系统完成。异步刷盘能够提高性能和吞吐量，但 Broker 崩溃后可能丢失消失。</li>
+</ul>
+<p><img src="刷盘.png" alt="刷盘"></p>
+<h2 id="4-消息读取"><a href="#4-消息读取" class="headerlink" title="4. 消息读取"></a>4. 消息读取</h2><p>消息读取逻辑简单许多，此处介绍根据 offset 和根据 key 查询两种方式。</p>
+<h3 id="4-1-根据-offset-查询"><a href="#4-1-根据-offset-查询" class="headerlink" title="4.1 根据 offset 查询"></a>4.1 根据 offset 查询</h3><p>读取消息的过程为：</p>
+<ul>
+<li>根据 topic 和 queueId 找到相应路径的 ConsumeQueue；</li>
+<li>根据 ConsumeQueue 找到消息在 CommitLog 文件中的物理偏移，读取消息内容。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//org.apache.rocketmq.store.DefaultMessageStore::getMessage</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> GetMessageResult <span class="title">getMessage</span><span class="params">(<span class="keyword">final</span> String group, <span class="keyword">final</span> String topic, <span class="keyword">final</span> <span class="keyword">int</span> queueId, <span class="keyword">final</span> <span class="keyword">long</span> offset,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">final</span> <span class="keyword">int</span> maxMsgNums,</span></span></span><br><span class="line"><span class="params"><span class="function">    <span class="keyword">final</span> MessageFilter messageFilter)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 找到对应的 ConsumeQueue</span></span><br><span class="line">    ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId);</span><br><span class="line">    ...</span><br><span class="line">    <span class="comment">// 根据 offset 找到对应的 ConsumeQueue 的 MappedFile</span></span><br><span class="line">    SelectMappedBufferResult bufferConsumeQueue = consumeQueue.getIndexBuffer(offset);</span><br><span class="line">    ... </span><br><span class="line">    <span class="keyword">for</span> (...) &#123;</span><br><span class="line">        <span class="comment">// CommitLog 物理地址</span></span><br><span class="line">        <span class="keyword">long</span> offsetPy = bufferConsumeQueue.getByteBuffer().getLong();</span><br><span class="line">        <span class="keyword">int</span> sizePy = bufferConsumeQueue.getByteBuffer().getInt();</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// 根据 offset 和 size 从 CommitLog 拿到具体的 Message</span></span><br><span class="line">        SelectMappedBufferResult selectResult = <span class="keyword">this</span>.commitLog.getMessage(offsetPy, sizePy);</span><br><span class="line">        ...</span><br><span class="line">        <span class="comment">// 将消息放入结果集</span></span><br><span class="line">        getResult.addMessage(selectResult);</span><br><span class="line">        status = GetMessageStatus.FOUND;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">// 更新 offset</span></span><br><span class="line">    nextBeginOffset = offset + (i / ConsumeQueue.CQ_STORE_UNIT_SIZE);</span><br><span class="line">    ...</span><br><span class="line">    getResult.setStatus(status);</span><br><span class="line">    getResult.setNextBeginOffset(nextBeginOffset);</span><br><span class="line">    <span class="keyword">return</span> getResult;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h3 id="4-2-根据-key-查询"><a href="#4-2-根据-key-查询" class="headerlink" title="4.2 根据 key 查询"></a>4.2 根据 key 查询</h3><p>根据 key 查询的过程：</p>
+<ul>
+<li>根据 topic 和 key 找到 IndexFile 文件中的 IndexItem；</li>
+<li>根据 indexItem 确定消息在 CommitLog 的物理偏移，读取消息内容。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//org.apache.rocketmq.store.DefaultMessageStore::queryMessage</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> QueryMessageResult <span class="title">queryMessage</span><span class="params">(String topic, String key, <span class="keyword">int</span> maxNum, <span class="keyword">long</span> begin, <span class="keyword">long</span> end)</span> </span>&#123;</span><br><span class="line">    ...</span><br><span class="line">    QueryMessageResult queryMessageResult = <span class="keyword">new</span> QueryMessageResult(); </span><br><span class="line">    <span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">3</span>; i++) &#123;</span><br><span class="line">        <span class="comment">// 获取IndexFile文件中记录的消息在CommitLog文件的物理偏移</span></span><br><span class="line">        QueryOffsetResult queryOffsetResult = <span class="keyword">this</span>.indexService.queryOffset(topic, key, maxNum, begin, lastQueryMsgTime);</span><br><span class="line">        ...</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">int</span> m = <span class="number">0</span>; m &lt; queryOffsetResult.getPhyOffsets().size(); m++) &#123;</span><br><span class="line">            <span class="keyword">long</span> offset = queryOffsetResult.getPhyOffsets().get(m);</span><br><span class="line">            ...</span><br><span class="line">            <span class="comment">//在 CommitLog 文件获取消息内容</span></span><br><span class="line">            SelectMappedBufferResult result = <span class="keyword">this</span>.commitLog.getData(offset, <span class="keyword">false</span>);</span><br><span class="line">            ...</span><br><span class="line">            queryMessageResult.addMessage(result);</span><br><span class="line">            ...</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> queryMessageResult;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+<h2 id="5-总结"><a href="#5-总结" class="headerlink" title="5. 总结"></a>5. 总结</h2><p><img src="总结.png" alt="总结"></p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://github.com/apache/rocketmq/blob/master/docs/cn/design.md">RocketMQ docs</a></li>
+<li><p><a target="_blank" rel="noopener" href="https://book.douban.com/subject/6097773/">Linux内核设计与实现</a></p>
+</li>
+<li><p><a target="_blank" rel="noopener" href="https://juejin.cn/post/7028385090036039717#heading-0">深入剖析RocketMQ源码 - 消息存储模块</a></p>
+</li>
+<li><a target="_blank" rel="noopener" href="https://juejin.cn/post/6996536657818173453#heading-15">《高性能利器》-32张图带你解决RocketMQ所有场景问题</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta">文章作者: </span><span class="post-copyright-info"><a href="mailto:undefined">StrokeBun</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta">文章链接: </span><span class="post-copyright-info"><a href="https://strokebun.github.io/2022/02/25/RocketMQ%E7%9A%84%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/">https://strokebun.github.io/2022/02/25/RocketMQ%E7%9A%84%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta">版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来自 <a href="https://strokebun.github.io" target="_blank">包老师写作的地方</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a></div><div class="post_share"><div class="social-share" data-image="/img/default.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/social-share.js/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2022/02/24/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/"><img class="next-cover" src="/img/default.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="pagination-info"><div class="label">下一篇</div><div class="next_info">消息队列概述</div></div></a></div></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><div><a href="/2022/02/24/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/" title="消息队列概述"><img class="cover" src="/img/default.jpg" alt="cover"><div class="content is-center"><div class="date"><i class="far fa-calendar-alt fa-fw"></i> 2022-02-24</div><div class="title">消息队列概述</div></div></a></div></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="/img/avatar.jpg" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">StrokeBun</div><div class="author-info__description">Money Oriented Programming</div></div><div class="card-info-data is-center"><div class="card-info-data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">40</div></a></div><div class="card-info-data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">15</div></a></div><div class="card-info-data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/strokebun"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E4%BB%8B%E7%BB%8D"><span class="toc-number">1.</span> <span class="toc-text">1. 介绍</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CommitLog"><span class="toc-number">1.0.1.</span> <span class="toc-text">CommitLog</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ConsumeQueue"><span class="toc-number">1.0.2.</span> <span class="toc-text">ConsumeQueue</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#IndexFile"><span class="toc-number">1.0.3.</span> <span class="toc-text">IndexFile</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E9%A1%B5%E7%BC%93%E5%AD%98%E5%92%8Cmmap"><span class="toc-number">2.</span> <span class="toc-text">2. 页缓存和mmap</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#2-1-%E9%A1%B5%E7%BC%93%E5%AD%98"><span class="toc-number">2.1.</span> <span class="toc-text">2.1 页缓存</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-2-mmap"><span class="toc-number">2.2.</span> <span class="toc-text">2.2 mmap</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%B6%88%E6%81%AF%E5%86%99%E5%85%A5"><span class="toc-number">3.</span> <span class="toc-text">3. 消息写入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#3-1-%E8%8E%B7%E5%8F%96MappedFile"><span class="toc-number">3.1.</span> <span class="toc-text">3.1 获取MappedFile</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-2-%E5%86%99%E7%BC%93%E5%86%B2%E5%8C%BA"><span class="toc-number">3.2.</span> <span class="toc-text">3.2 写缓冲区</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-3-%E6%B6%88%E6%81%AF%E5%88%B7%E7%9B%98"><span class="toc-number">3.3.</span> <span class="toc-text">3.3 消息刷盘</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E6%B6%88%E6%81%AF%E8%AF%BB%E5%8F%96"><span class="toc-number">4.</span> <span class="toc-text">4. 消息读取</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#4-1-%E6%A0%B9%E6%8D%AE-offset-%E6%9F%A5%E8%AF%A2"><span class="toc-number">4.1.</span> <span class="toc-text">4.1 根据 offset 查询</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-2-%E6%A0%B9%E6%8D%AE-key-%E6%9F%A5%E8%AF%A2"><span class="toc-number">4.2.</span> <span class="toc-text">4.2 根据 key 查询</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%80%BB%E7%BB%93"><span class="toc-number">5.</span> <span class="toc-text">5. 总结</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="toc-number">6.</span> <span class="toc-text">参考资料</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/25/RocketMQ%E7%9A%84%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8/" title="RocketMQ的消息存储">RocketMQ的消息存储</a><time datetime="2022-02-25T08:43:50.000Z" title="发表于 2022-02-25 16:43:50">2022-02-25</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/24/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%E6%A6%82%E8%BF%B0/" title="消息队列概述">消息队列概述</a><time datetime="2022-02-24T01:00:37.000Z" title="发表于 2022-02-24 09:00:37">2022-02-24</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/22/HTTP%20GET%E5%92%8CPOST%E7%9A%84%E5%8C%BA%E5%88%AB/" title="HTTP GET和POST的区别">HTTP GET和POST的区别</a><time datetime="2022-02-22T06:30:13.000Z" title="发表于 2022-02-22 14:30:13">2022-02-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/21/TCP%E7%9A%84%E7%B2%98%E5%8C%85/" title="TCP的粘包">TCP的粘包</a><time datetime="2022-02-21T08:50:21.000Z" title="发表于 2022-02-21 16:50:21">2022-02-21</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2022/02/21/TCP%E7%9A%84%E8%BF%9E%E6%8E%A5%E4%B8%8E%E9%87%8A%E6%94%BE/" title="TCP连接的建立与释放">TCP连接的建立与释放</a><time datetime="2022-02-21T02:42:36.000Z" title="发表于 2022-02-21 10:42:36">2022-02-21</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2022 By StrokeBun</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="浅色和深色模式转换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside_config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui/dist/fancybox.umd.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
