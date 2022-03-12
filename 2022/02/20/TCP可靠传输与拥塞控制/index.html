@@ -7,7 +7,7 @@
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://strokebun.github.io/img/default.jpg">
 <meta property="article:published_time" content="2022-02-20T09:46:26.000Z">
-<meta property="article:modified_time" content="2022-02-21T08:41:48.328Z">
+<meta property="article:modified_time" content="2022-03-12T02:17:11.075Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="计算机网络">
 <meta name="twitter:card" content="summary">
@@ -53,7 +53,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: true,
-  postUpdate: '2022-02-21 16:41:48'
+  postUpdate: '2022-03-12 10:17:11'
 }</script><noscript><style type="text/css">
   #nav {
     opacity: 1
@@ -142,7 +142,7 @@
       }
     }
     detectApple()
-    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">包老师写作的地方</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">TCP可靠传输与拥塞控制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-20T09:46:26.000Z" title="发表于 2022-02-20 17:46:26">2022-02-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-02-21T08:41:48.328Z" title="更新于 2022-02-21 16:41:48">2022-02-21</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="TCP可靠传输与拥塞控制"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><p>传输控制协议 TCP（Transmission Control Proticol）是一种面向连接的、可靠的、基于字节流的通信协议，具有拥塞控制功能。在计算机网络 OSI 模型中，位于传输层。</p>
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">包老师写作的地方</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">TCP可靠传输与拥塞控制</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-20T09:46:26.000Z" title="发表于 2022-02-20 17:46:26">2022-02-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-12T02:17:11.075Z" title="更新于 2022-03-12 10:17:11">2022-03-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="TCP可靠传输与拥塞控制"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-介绍"><a href="#1-介绍" class="headerlink" title="1. 介绍"></a>1. 介绍</h2><p>传输控制协议 TCP（Transmission Control Proticol）是一种面向连接的、可靠的、基于字节流的通信协议，具有拥塞控制功能。在计算机网络 OSI 模型中，位于传输层。</p>
 <blockquote>
 <p>所谓连接，即双方维护了一组数据结构记录状态，并根据一个状态机进行状态转移或者相应的处理机制。</p>
 <p>在同一层还有用户数据报协议 UDP（User Datagram Protocol），与 TCP 基本相反，UDP 无连接、不可靠、面向报文。但这不代表使用 UDP 就无法实现可靠传输，只要在上面的应用层精心设计，也能够达到可靠传输的效果，例如 Google 的 QUIC 协议。</p>
@@ -176,9 +176,9 @@
 <li><code>#4</code> 是窗口以外的数据，接收方没有空间。</li>
 </ul>
 <p>其中 <code>#2</code> 和 <code>#3</code> 为发送窗口，连续 ARQ 协议规定，当发送方收到一个 ack 后，就把发送窗口往前滑动一个分组的位置，而接收方一般采用累计确认的方式，即对收到的最后一个分组进行确认，例如接收方收到 1023、1024、1026 - 1100 的数据，也只会对 1024 进行确认。</p>
-<p>当发送方收到确认后，对窗口进行相应的移动。例如收到了 36 的 ack 后，就可以发送 46 - 51 的数据。</p>
+<p>当发送方收到确认后，对窗口进行相应的移动。例如收到了 36 的 ack 后，就可以发送 52 - 56 的数据。</p>
 <p><img src="arq.png" alt="连续ARQ协议示意"></p>
-<h4 id="2-2-3-糊涂窗口综合症"><a href="#2-2-3-糊涂窗口综合症" class="headerlink" title="2.2.3 糊涂窗口综合症"></a>2.2.3 糊涂窗口综合症</h4><p>如果服务端（接收方）处理很慢，接收窗口不断缩小，那么发送方如何处理？根据上面的理论，当接收窗口大小为 0 时，发送方不会发送数据了。等到接收方处理完数据之后，腾出几个字节的窗口，发送方会立马发送这几个字节的数据。</p>
+<h4 id="2-2-3-糊涂窗口综合症"><a href="#2-2-3-糊涂窗口综合症" class="headerlink" title="2.2.3 糊涂窗口综合症"></a>2.2.3 糊涂窗口综合症</h4><p>如果服务端（接收方）处理很慢，接收窗口不断缩小，那么发送方如何处理？根据上面的理论，当接收窗口大小为 0 时，发送方便不会发送数据了。等到接收方处理完数据之后，腾出几个字节的窗口，发送方会立马发送这几个字节的数据。</p>
 <p>这被称为糊涂窗口综合症，它的问题是 TCP 的首部需要 40 字节，却只携带了少量数据，类似可以坐上千人的高铁，却只坐了几个人，造成极大的资源浪费。</p>
 <p>对于糊涂窗口综合症，一般有两个方案：</p>
 <ul>
@@ -200,7 +200,7 @@
 <p>快速重传当收到三个连续相同的 ack 之后，即使未超时，也会立即重传数据。</p>
 <p><img src="快速重传.png" alt="快速重传"></p>
 <h4 id="2-3-3-SACK"><a href="#2-3-3-SACK" class="headerlink" title="2.3.3 SACK"></a>2.3.3 SACK</h4><p>如果发送方发送了 1 - 100 的数据，其中 3 的数据丢失，即使引入了快速重传，接收方仍然只会对 2 进行确认，发送方需要发送 3 - 100 的数据。</p>
-<p>一种更好方式是 SACK 机制，在 TCP 头部中会添加 SACK 字段，SACK 字段记录已经收到的数据，接收方根据 SACK 字段选择性的发送数据。</p>
+<p>一种更好的方式是 SACK 机制，在 TCP 头部中会添加 SACK 字段，SACK 字段记录已经收到的数据，接收方根据 SACK 字段选择性的发送数据。</p>
 <p><img src="sack.png" alt="SACK机制"></p>
 <p>SACK 机制需要消耗发送方的资源，发送方收到 SACK 字段后，经过遍历才能确认需要发送的数据。SACK 机制默认打开，需要根据业务需要进行控制。 </p>
 <h2 id="3-拥塞控制"><a href="#3-拥塞控制" class="headerlink" title="3. 拥塞控制"></a>3. 拥塞控制</h2><p>上文说到 TCP 使用了滑动窗口做了流量控制（根据发送窗口和接收窗口同时限制），但是不止于此，TCP 是个无私的协议，当拥塞发生时，会主动降低自己的发送速率。</p>
@@ -235,10 +235,10 @@
 <h3 id="3-5-其他拥塞控制算法"><a href="#3-5-其他拥塞控制算法" class="headerlink" title="3.5 其他拥塞控制算法"></a>3.5 其他拥塞控制算法</h3><p>上面已经介绍 TCP Reno 的 4 个机制，但 Reno 毕竟是 1990 年的产物了，在随后的发展中产生了 BIC 和 CUBIC 算法，具体可见 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/366392032">深入理解TCP拥塞控制——从BIC到CUBIC</a>。</p>
 <blockquote>
 <p>linux 2.6.8 默认使用 BIC，BIC 的思想是使用二分查找去搜索合适的 cwnd。</p>
-<p>linux 2.6.19 默认使用 CUBIC，用公式了摆脱了对 RTT 的依赖。</p>
+<p>linux 2.6.19 默认使用 CUBIC，用公式摆脱了对 RTT 的依赖。</p>
 </blockquote>
 <p>上面介绍的拥塞控制算法都是基于分组丢失来控制 cwnd 的大小，而简单而粗暴地将窗口大小的数据全部突发出去，这往往会造成路由器的排队。</p>
-<p>linux 4.9 中引入了 BBR 算法，BBR 是 Google 在 2016年发布的拥塞算法，BBR 在计算 cwnd 的同时，还会计算数据的发送时间间隔，具体可见 <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/fullHtml/10.1145/3009824">BBR:Congestion-Based Congestion Control</a>。</p>
+<p>linux 4.9 中引入了 BBR 算法，BBR 是 Google 在 2016 年发布的拥塞算法，BBR 在计算 cwnd 的同时，还会计算数据的发送时间间隔，具体可见 <a target="_blank" rel="noopener" href="https://dl.acm.org/doi/fullHtml/10.1145/3009824">BBR:Congestion-Based Congestion Control</a>。</p>
 <h2 id="4-总结"><a href="#4-总结" class="headerlink" title="4. 总结"></a>4. 总结</h2><p><img src="总结.png" alt="总结"></p>
 <h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul>
 <li><a target="_blank" rel="noopener" href="https://en.wikipedia.org/wiki/Transmission_Control_Protocol">Transmission_Control_Protocol Wikipedia</a></li>

@@ -1,13 +1,13 @@
-<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>IO多路复用 | 包老师写作的地方</title><meta name="keywords" content="操作系统"><meta name="author" content="StrokeBun"><meta name="copyright" content="StrokeBun"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. Socket 基础网络通信依赖 Socket 实现，内核对应用层提供 socket 接口供用户进程访问。  socket 维护了读写缓冲区，当使用操作系统提供的 write 写入数据时，需要先将数据从用户态拷贝到内核态的缓冲区，由操作系统发送。对端的网卡收到数据后，通过触发中断， 将网卡数据拷贝到内核的缓冲区，再拷贝到用户空间供进程读取。  对于传统的阻塞IO BIO（Blocking IO">
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"><title>IO多路复用 | 包老师写作的地方</title><meta name="keywords" content="操作系统"><meta name="author" content="StrokeBun"><meta name="copyright" content="StrokeBun"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="1. Socket 基础网络通信依赖 Socket 实现，内核对应用层提供 Socket 接口供用户进程访问。  socket 维护了读写缓冲区，当使用操作系统提供的 write 方法写入数据时，需要先将数据从用户态拷贝到内核态的缓冲区，再由操作系统发送。对端的网卡收到数据后，触发中断， 将网卡数据拷贝到内核的缓冲区，再拷贝到用户空间供进程读取。  对于传统的阻塞 IO BIO（Blocking">
 <meta property="og:type" content="article">
 <meta property="og:title" content="IO多路复用">
 <meta property="og:url" content="https://strokebun.github.io/2022/02/15/IO%E5%A4%9A%E8%B7%AF%E5%A4%8D%E7%94%A8/index.html">
 <meta property="og:site_name" content="包老师写作的地方">
-<meta property="og:description" content="1. Socket 基础网络通信依赖 Socket 实现，内核对应用层提供 socket 接口供用户进程访问。  socket 维护了读写缓冲区，当使用操作系统提供的 write 写入数据时，需要先将数据从用户态拷贝到内核态的缓冲区，由操作系统发送。对端的网卡收到数据后，通过触发中断， 将网卡数据拷贝到内核的缓冲区，再拷贝到用户空间供进程读取。  对于传统的阻塞IO BIO（Blocking IO">
+<meta property="og:description" content="1. Socket 基础网络通信依赖 Socket 实现，内核对应用层提供 Socket 接口供用户进程访问。  socket 维护了读写缓冲区，当使用操作系统提供的 write 方法写入数据时，需要先将数据从用户态拷贝到内核态的缓冲区，再由操作系统发送。对端的网卡收到数据后，触发中断， 将网卡数据拷贝到内核的缓冲区，再拷贝到用户空间供进程读取。  对于传统的阻塞 IO BIO（Blocking">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://strokebun.github.io/img/default.jpg">
 <meta property="article:published_time" content="2022-02-15T07:26:37.000Z">
-<meta property="article:modified_time" content="2022-03-03T12:06:38.518Z">
+<meta property="article:modified_time" content="2022-03-12T01:57:18.348Z">
 <meta property="article:author" content="StrokeBun">
 <meta property="article:tag" content="操作系统">
 <meta name="twitter:card" content="summary">
@@ -53,7 +53,7 @@
   isHome: false,
   isHighlightShrink: false,
   isToc: true,
-  postUpdate: '2022-03-03 20:06:38'
+  postUpdate: '2022-03-12 09:57:18'
 }</script><noscript><style type="text/css">
   #nav {
     opacity: 1
@@ -142,11 +142,11 @@
       }
     }
     detectApple()
-    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">包老师写作的地方</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">IO多路复用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-15T07:26:37.000Z" title="发表于 2022-02-15 15:26:37">2022-02-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-03T12:06:38.518Z" title="更新于 2022-03-03 20:06:38">2022-03-03</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="IO多路复用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-Socket-基础"><a href="#1-Socket-基础" class="headerlink" title="1. Socket 基础"></a>1. Socket 基础</h2><p>网络通信依赖 Socket 实现，内核对应用层提供 socket 接口供用户进程访问。</p>
+    })(window)</script><meta name="generator" content="Hexo 5.4.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="/img/avatar.jpg" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data is-center"><div class="data-item"><a href="/archives/"><div class="headline">文章</div><div class="length-num">45</div></a></div><div class="data-item"><a href="/tags/"><div class="headline">标签</div><div class="length-num">17</div></a></div><div class="data-item"><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div></div><hr/><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url('/img/default.jpg')"><nav id="nav"><span id="blog_name"><a id="site-name" href="/">包老师写作的地方</a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 主页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><a class="site-page" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></div><div class="menus_item"><a class="site-page" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></div></div><div id="toggle-menu"><a class="site-page"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">IO多路复用</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2022-02-15T07:26:37.000Z" title="发表于 2022-02-15 15:26:37">2022-02-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2022-03-12T01:57:18.348Z" title="更新于 2022-03-12 09:57:18">2022-03-12</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E8%AE%A1%E7%AE%97%E6%9C%BA%E5%9F%BA%E7%A1%80/">计算机基础</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="IO多路复用"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">阅读量:</span><span id="busuanzi_value_page_pv"></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><h2 id="1-Socket-基础"><a href="#1-Socket-基础" class="headerlink" title="1. Socket 基础"></a>1. Socket 基础</h2><p>网络通信依赖 Socket 实现，内核对应用层提供 Socket 接口供用户进程访问。</p>
 <p><img src="socket.png" alt="socket示意"></p>
-<p>socket 维护了读写缓冲区，当使用操作系统提供的 write 写入数据时，需要先将数据从用户态拷贝到内核态的缓冲区，由操作系统发送。对端的网卡收到数据后，通过触发中断， 将网卡数据拷贝到内核的缓冲区，再拷贝到用户空间供进程读取。</p>
+<p>socket 维护了读写缓冲区，当使用操作系统提供的 <code>write</code> 方法写入数据时，需要先将数据从用户态拷贝到内核态的缓冲区，再由操作系统发送。对端的网卡收到数据后，触发中断， 将网卡数据拷贝到内核的缓冲区，再拷贝到用户空间供进程读取。</p>
 <p><img src="缓冲区.png" alt="sockey传输"></p>
-<p>对于传统的阻塞IO BIO（Blocking IO），一次阻塞读取的工作流程如下：</p>
+<p>对于传统的阻塞 IO BIO（Blocking IO），一次阻塞读取的工作流程如下：</p>
 <ul>
 <li>阻塞式读取 Socket，缓冲区中没有数据；</li>
 <li>进程进入阻塞状态，从 CPU 的运行队列中出队，进入 Socket 的等待队列；</li>
@@ -164,12 +164,12 @@
 <p>上述单机服务器实现大量连接的问题被称为 C10K 问题。</p>
 <h3 id="2-2-IO多路复用"><a href="#2-2-IO多路复用" class="headerlink" title="2.2 IO多路复用"></a>2.2 IO多路复用</h3><p>IO 多路复用由此产生，其思想就是用一个线程，同时监听若干个 socket 连接是否可以执行 IO 操作，在单线程的情况下可以同时处理多个客户端请求。</p>
 <blockquote>
-<p>IO 多路复用的核心优势在于处理更多的连接，在连接数不高的情景下，使用 IO 多路复用的性能可能比 BIO + 多线程的方式低。</p>
+<p>IO 多路复用的核心优势在于处理更多的连接，在连接数不高的情景下，使用 IO 多路复用的性能并不比 BIO + 多线程的方式高。</p>
 </blockquote>
 <p>Linux 上的 IO 多路复用有 select、poll、epoll 三个实现。</p>
 <h2 id="3-select"><a href="#3-select" class="headerlink" title="3. select"></a>3. select</h2><p><code>select</code> 方法定义如下：</p>
 <figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">select</span><span class="params">(<span class="keyword">int</span> max_fd, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, </span></span></span><br><span class="line"><span class="params"><span class="function">           struct timeval *timeout)</span></span>;</span><br></pre></td></tr></table></figure>
-<p>其中 <code>max_fd</code> 是最大文件描述符的值，<code>readfds</code>、<code>writefds</code> 和<code>exceptfds</code>  分别对应读、写、异常条件的文件描述符，<code>timeout</code> 为超时时间。</p>
+<p>其中 <code>max_fd</code> 是最大文件描述符的值，<code>readfds</code>、<code>writefds</code> 和 <code>exceptfds</code>  分别对应读、写、异常条件的文件描述符，<code>timeout</code> 为超时时间。</p>
 <blockquote>
 <p>Linux 的思想是一切皆文件，网络 IO 也被看成文件处理，会分配文件描述符。</p>
 </blockquote>
@@ -183,7 +183,7 @@
 <p>从上面的说明也可以看出 <code>select</code> 有以下缺点：</p>
 <ul>
 <li><code>fd_set</code> 固定长度为 1024，最多监听 1024 个连接，增加连接需要改动内核源码重新编译；</li>
-<li><code>fd_set</code> 需要从用户态传入内核态。并且传入内核中都会被改写，不可重用，每次调用 <code>select</code> 前需要重新初始化；</li>
+<li><code>fd_set</code> 需要从用户态传入内核态，并且在内核中会被改写，每次调用 <code>select</code> 前需要重新初始化，不具有重用性；</li>
 <li>拿到结果后，需要遍历整个 <code>fd_set</code>，才能知道哪些连接可以处理。</li>
 </ul>
 <h2 id="4-poll"><a href="#4-poll" class="headerlink" title="4. poll"></a>4. poll</h2><p><code>poll</code> 的函数定义如下：</p>
@@ -195,7 +195,7 @@
 </blockquote>
 <h2 id="5-epoll"><a href="#5-epoll" class="headerlink" title="5. epoll"></a>5. epoll</h2><h3 id="5-1-epoll介绍"><a href="#5-1-epoll介绍" class="headerlink" title="5.1 epoll介绍"></a>5.1 epoll介绍</h3><p><code>epoll</code> 是对 <code>select</code> 和 <code>poll</code> 的改进，使用了三个函数，下面将依次介绍。</p>
 <h4 id="epoll-create"><a href="#epoll-create" class="headerlink" title="epoll_create"></a>epoll_create</h4><figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">epoll_create</span><span class="params">(<span class="keyword">int</span> size)</span></span>;</span><br></pre></td></tr></table></figure>
-<p><code>epoll_create</code> 会创建一个实例，并返回对应的文件描述符，参数 size 是 <code>epoll</code> 监听的文件描述符个数，并不是上限值，而是对内核初始化数据结构的一个建议。</p>
+<p><code>epoll_create</code> 会创建一个实例，并返回对应的文件描述符，参数 <code>size</code> 是 <code>epoll</code> 监听的文件描述符个数，并不是上限值，而是对内核初始化数据结构的一个建议。</p>
 <p>内部的数据结构：</p>
 <ul>
 <li>监听列表：所有要监听的文件描述符，用红黑树存储</li>
@@ -214,14 +214,14 @@
 </blockquote>
 <h3 id="5-3-改进点"><a href="#5-3-改进点" class="headerlink" title="5.3 改进点"></a>5.3 改进点</h3><p>相较于 <code>select</code> 和 <code>poll</code>，<code>epoll</code> 有两个改进点：</p>
 <ul>
-<li><code>epoll_wait</code> 在检测是否有事件发生时，只要检测链表是否为空即可，并将发生的事件复制到用户态；</li>
+<li><code>epoll_wait</code> 在检测是否有事件发生时，只要检测链表是否为空即可；</li>
 <li><code>epoll</code> 对于每个描述符，只需要在 <code>epoll_ctl</code> 传递一次，之后 <code>epoll_wait</code> 不需要再次传递，这也大大提高了效率。</li>
 </ul>
 <h2 id="6-对比"><a href="#6-对比" class="headerlink" title="6. 对比"></a>6. 对比</h2><p><code>select</code>、<code>poll</code>、<code>epoll</code> 的对比如下：</p>
 <ul>
 <li>最大连接数：<code>select</code> 最大连接数为 1024，增加连接数需要改动内核；<code>poll</code> 和 <code>epoll</code> 没有连接上限；</li>
-<li>文件描述符剧增的 IO 效率：<code>select</code> 和 <code>poll</code> 需要对所有连接进行扫描，在多连接时效率低；<code>epoll</code> 只对活跃的连接进行扫描，性能不会大幅度下降，但面对大量活跃连接仍有性能问题；</li>
-<li>数据拷贝：<code>select</code> 和 <code>poll</code> 每次都需要向内核拷贝，<code>epoll</code> 只需要拷贝一次。</li>
+<li>文件描述符剧增的 IO 效率：<code>select</code> 和 <code>poll</code> 需要对所有连接进行扫描，在多连接时效率会骤降；<code>epoll</code> 只对活跃的连接进行扫描，性能不会大幅度下降，但面对大量活跃连接仍有性能问题；</li>
+<li>数据拷贝：<code>select</code> 和 <code>poll</code> 每次都需要拷贝数据到内核，<code>epoll</code> 只需要拷贝一次。</li>
 </ul>
 <p>三者的适用场景：</p>
 <ul>
