@@ -4,6 +4,31 @@
   
     
     <entry>
+      <title>LSM-Tree</title>
+      <link href="/2022/04/04/LSM-Tree/"/>
+      <url>/2022/04/04/LSM-Tree/</url>
+      
+        <content type="html"><![CDATA[<h2 id="1-背景"><a href="#1-背景" class="headerlink" title="1. 背景"></a>1. 背景</h2><p>在 NoSQL 领域，key-value 是最常见的数据存储类型，如何高效的查询、修改和存储 key-value 是 NoSQL 的一个设计核心。</p><h3 id="1-1-基础方案"><a href="#1-1-基础方案" class="headerlink" title="1.1 基础方案"></a>1.1 基础方案</h3><p>一种直观的实现方式是在内存中维护哈希表存储所有数据（Redis），但这种方案会受到机器内存的限制。一个改进方案是使用硬盘存储数据，并在内存中维护索引。</p><p><img src="哈希索引实现.png" alt="哈希索引实现"></p><p>上述方案仍存在两个关键问题：</p><ul><li>key-value 的频繁更新，将产生大量随机 IO，效率不高；</li><li>范围查询效率低。</li></ul><h3 id="1-2-顺序-IO"><a href="#1-2-顺序-IO" class="headerlink" title="1.2 顺序 IO"></a>1.2 顺序 IO</h3><p>对于随机 IO 的问题，可以采用只允许追加的方式，key-value 按照写入的顺序出现，对于相同的 key，只有最新的值有效。这种方案将更新合并为顺序写入，提高了磁盘写入效率。</p><p><img src="追加写入.png" alt="追加写入"></p><p>使用追加写入带来了一个新问题，如何避免用完硬盘空间？一个好的解决方案是分为特定大小的段，当增长到特定阈值时关闭当前段文件，并开始写入一个新的段文件，然后就可以对这些段进行压缩，丢弃重复的键，只保留最新的值，这个操作被称为 compaction。</p><p><img src="compaction.png" alt="compaction"></p><h3 id="1-3-范围查询"><a href="#1-3-范围查询" class="headerlink" title="1.3 范围查询"></a>1.3 范围查询</h3><p>针对范围查询的问题，对段文件的格式进行改变，要求键值对按 key 排序，称其为排序字符串表 Sorted String Table，简称 SSTable。SSTable 的合并是十分简单并且高效的，采用（外部）归并排序即可。</p><p>除此之外，要求每个 key 在每个合并后的段文件中只出现一次（compaction 过程可以保证）。同时，在内存中维护一个有序数据结构 memtable。</p><p>此时的存储引擎工作如下：</p><ul><li>写入时，将数据添加到 memtable 中；</li><li>当 memtable 达到阈值时，将其转为 SSTable 文件写入硬盘；</li><li>查询时将在 memtable 中进行，否则在各个 SSTable 文件中查询。</li></ul><h3 id="1-4-崩溃恢复"><a href="#1-4-崩溃恢复" class="headerlink" title="1.4 崩溃恢复"></a>1.4 崩溃恢复</h3><p>到此为此，这个方案只差一个问题：如果在 memtable 转为 SSTable 写入磁盘前发生崩溃，将会导致数据丢失。</p><p>一个有效的手段是保存一个单独的 log 文件，每次数据更改都会立马写入该文件，保证崩溃后可以恢复数据。</p><blockquote><p>此处的机制类似 MySQL 中的 redo log，可见 <a href="https://blog.strokebun.top/2022/02/11/MySQL%E4%B8%AD%E7%9A%84redo-log%E5%92%8Cbinlog/">MySQL中的redo log和binlog</a>。</p></blockquote><h2 id="2-LSM-Tree"><a href="#2-LSM-Tree" class="headerlink" title="2. LSM-Tree"></a>2. LSM-Tree</h2><h3 id="2-1-介绍"><a href="#2-1-介绍" class="headerlink" title="2.1 介绍"></a>2.1 介绍</h3><p>LSM-Tree 的设计理念是最大化利用硬盘的顺序写入性能，为 key-value 的修改提供高效的索引。LSM-Tree 在工业界中得到广泛应用，例如 <a href="https://dl.acm.org/doi/abs/10.1145/1365815.1365816">Big Table</a>、<a href="https://leveldb-handbook.readthedocs.io/zh/latest/basic.html">LevelDB</a>。</p><p>LSM-Tree 的结构如下图所示，包含 <script type="math/tex">C_0、C_1...C_k</script> 多个组件，这些组件的容量依次增加。其中 <script type="math/tex">C_0</script> 位于内存中，底层实现为有序数据结构（红黑树或者跳表）；其余组件位于硬盘中，底层实现通常是 B 类树。</p><p><img src="LSM-Tree.png" alt="LSM-Tree"></p><h3 id="2-2-操作"><a href="#2-2-操作" class="headerlink" title="2.2 操作"></a>2.2 操作</h3><h4 id="2-2-1-修改"><a href="#2-2-1-修改" class="headerlink" title="2.2.1 修改"></a>2.2.1 修改</h4><p>对于一次 key-value 的插入、更新或者删除操作，需要经过以下步骤：</p><ul><li>以追加的方式写入 log 文件，保证崩溃后可恢复；</li><li>更新被写入到 <script type="math/tex">C_0</script> 中，对于用户而言操作已经结束了，后续步骤由后台线程异步执行；</li></ul><p>当 <script type="math/tex">C_0</script> 的大小达到阈值时，将会进行 compaction，与 <script type="math/tex">C_1</script> 发生归并排序，用生成的新文件替代 <script type="math/tex">C_1</script>。类似的，任意一个 <script type="math/tex">C_i</script> 达到阈值时，都会与下层 <script type="math/tex">C_{i+1}</script> 发生 compaction。</p><p>对于更新和删除操作，不会实际删除失效的值，而是在 compaction 时清除数据。</p><blockquote><p>这种伪删除的思想在很多领域进行了应用，例如 MySQL 中的 purge。</p></blockquote><h4 id="2-2-2-查询"><a href="#2-2-2-查询" class="headerlink" title="2.2.2 查询"></a>2.2.2 查询</h4><p>对于一次查询操作，可能需要查询多个组件。查询过程从 <script type="math/tex">C_0</script> 开始，不存在则查询 <script type="math/tex">C_1</script>，以此类推直到查询到目标键值或者到达最后一个组件。由此可见，对于查询不存在的数据，LSM-Tree 的开销很大。</p><p>LSM-Tree 正是通过牺牲查询性能来换取修改性能，这被称为读放大，即用户向存储引擎读取数据，存储引擎向硬盘读取数据总量大于用户读取的数据总量。</p><blockquote><p>相对应的，也有写放大的概念。</p></blockquote><p>可以有以下改进方案：</p><ul><li>使用布隆过滤器，避免查询不存在的值，LevelDB 采用了此方案；</li><li>存储引擎采用键值存储分离，降低 LSM-Tree 的层数，例如 <a href="https://dl.acm.org/doi/10.1145/3033273">WiscKey</a>。</li></ul><h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ul><li><a href="https://book.douban.com/subject/30329536/">数据密集型应用系统设计</a></li><li><p><a href="https://link.springer.com/article/10.1007/s002360050048">The log-structured merge-tree</a></p></li><li><p><a href="https://www.zhihu.com/question/446544471">LSM Tree是什么？ 知乎</a></p></li><li><a href="https://dl.acm.org/doi/abs/10.1145/1365815.1365816">Bigtable: A Distributed Storage System for Structured Data</a></li><li><a href="https://leveldb-handbook.readthedocs.io/zh/latest/basic.html">LevelDB handbook</a></li><li><a href="https://dl.acm.org/doi/10.1145/3033273">WiscKey: Separating Keys from Values in SSD-Conscious Storage</a></li></ul>]]></content>
+      
+      
+      <categories>
+          
+          <category> 计算机基础 </category>
+          
+      </categories>
+      
+      
+        <tags>
+            
+            <tag> 数据结构与算法 </tag>
+            
+        </tags>
+      
+    </entry>
+    
+    
+    
+    <entry>
       <title>Reactor模式</title>
       <link href="/2022/03/08/Reactor%E6%A8%A1%E5%BC%8F/"/>
       <url>/2022/03/08/Reactor%E6%A8%A1%E5%BC%8F/</url>
